@@ -1,0 +1,20 @@
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- 로그 출력 포맷-->
+            <pattern>[%-5level] %date{yyyy-MM-dd HH:mm:ss} [%logger{36}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 로그 레벨 설정 -->
+    <root level="ERROR">
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+    <!-- Spring Boot 로그 -->
+    <logger name="org.springframework" level="INFO"/>
+
+    <!-- 패키지의 로그 -->
+    <logger name="com.example" level="INFO" />
+</configuration>
+<!--ERROR INFO DEBUG-->

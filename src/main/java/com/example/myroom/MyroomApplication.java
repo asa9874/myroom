@@ -1,4 +1,4 @@
-package com.example.myroom.myroom;
+package com.example.myroom;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

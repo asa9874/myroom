@@ -3,13 +3,30 @@ package com.example.myroom.domain.model3D.dto.response;
 import java.time.LocalDateTime;
 
 import com.example.myroom.domain.model3D.model.Model3D;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+
+@JsonNaming(SnakeCaseStrategy.class)
 public record Model3DResponseDto(
+        @Schema(description = "모델 ID", requiredMode = RequiredMode.REQUIRED)
         Long id,
+        
+        @Schema(description = "생성 일시", requiredMode = RequiredMode.REQUIRED)
         LocalDateTime createdAt,
+        
+        @Schema(description = "모델 링크", requiredMode = RequiredMode.REQUIRED)
         String link,
+        
+        @Schema(description = "생성자 ID", requiredMode = RequiredMode.REQUIRED)
         Long creatorId,
+        
+        @Schema(description = "공유 여부", requiredMode = RequiredMode.REQUIRED)
         Boolean isShared,
+        
+        @Schema(description = "모델 설명", requiredMode = RequiredMode.REQUIRED)
         String description
 ) {
     public static Model3DResponseDto from(Model3D model3D) {

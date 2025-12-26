@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/model3d")
-public class Model3DController {
+public class Model3DController implements Model3DApi {
     private final Model3DService model3DService;
 
     @GetMapping("/{model3dId}")

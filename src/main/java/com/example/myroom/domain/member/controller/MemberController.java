@@ -1,24 +1,27 @@
 package com.example.myroom.domain.member.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.myroom.domain.member.dto.request.MemberLoginRequestDto;
-import com.example.myroom.domain.member.dto.request.MemberRegisterRequestDto;
-import com.example.myroom.domain.member.dto.response.LoginResponseDto;
+import com.example.myroom.domain.member.dto.request.MemberUpdateRequestDto;
 import com.example.myroom.domain.member.dto.response.MemberResponseDto;
 import com.example.myroom.domain.member.service.MemberService;
 import com.example.myroom.global.jwt.CustomUserDetails;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+
 
 @RestController
 @RequiredArgsConstructor
@@ -33,25 +36,33 @@ public class MemberController {
         return ResponseEntity.ok(responseDto);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<Void> registerMember(
-            @RequestBody MemberRegisterRequestDto memberRequestDto) {
-        memberService.registerMember(memberRequestDto);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody MemberLoginRequestDto requestDto) {
-        LoginResponseDto responseDto = memberService.login(requestDto);
-        return ResponseEntity.ok().body(responseDto);
-    }
-
     @GetMapping("/me")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<MemberResponseDto> getCurrentMember(
             @AuthenticationPrincipal CustomUserDetails member) {
         MemberResponseDto responseDto = memberService.getMemberById(member.getId());
         return ResponseEntity.ok(responseDto);
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<List<MemberResponseDto>> getAllMembers() {
+        List<MemberResponseDto> members = memberService.getAllMembers();
+        return ResponseEntity.ok(members);
+    }
+    
+    @PutMapping("/{memberId}")
+    public ResponseEntity<MemberResponseDto> updateMember(
+            @PathVariable(name = "memberId") Long memberId,
+            @Valid @RequestBody MemberUpdateRequestDto updateRequestDto) {
+        MemberResponseDto responseDto = memberService.updateMember(memberId, updateRequestDto);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @DeleteMapping("/{memberId}")
+    public ResponseEntity<Void> deleteMember(
+            @PathVariable(name = "memberId") Long memberId) {
+        memberService.deleteMember(memberId);
+        return ResponseEntity.noContent().build();
     }
 
 }

@@ -1,55 +1,50 @@
 package com.example.myroom.domain.member.service;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import com.example.myroom.domain.member.dto.request.MemberLoginRequestDto;
-import com.example.myroom.domain.member.dto.request.MemberRegisterRequestDto;
-import com.example.myroom.domain.member.dto.response.LoginResponseDto;
+import com.example.myroom.domain.member.dto.request.MemberUpdateRequestDto;
 import com.example.myroom.domain.member.dto.response.MemberResponseDto;
 import com.example.myroom.domain.member.model.Member;
 import com.example.myroom.domain.member.repository.MemberRepository;
-import com.example.myroom.global.jwt.JwtTokenProvider;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
 
 
     public MemberResponseDto getMemberById(Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 " + memberId + "을(를) 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("회원 " + memberId + "을 찾을 수 없습니다."));
         return MemberResponseDto.from(member);
     }
 
-    public void registerMember(MemberRegisterRequestDto memberRequestDto) {
-        if (memberRepository.existsByEmail(memberRequestDto.email())) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다: " + memberRequestDto.email());
-        }
-
-        Member member = Member.builder()
-                .name(memberRequestDto.name())
-                .email(memberRequestDto.email())
-                .password(passwordEncoder.encode(memberRequestDto.password()))
-                .build();
-        memberRepository.save(member);
+    public List<MemberResponseDto> getAllMembers() {
+        List<Member> members = memberRepository.findAll();
+        return members.stream()
+                .map(MemberResponseDto::from)
+                .toList();
     }
 
-    public LoginResponseDto login(MemberLoginRequestDto requestDto) {
-        Member member = memberRepository.findByEmail(requestDto.email())
-                .orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다."));
-
-        if (!passwordEncoder.matches(requestDto.password(), member.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+    public MemberResponseDto updateMember(Long memberId, MemberUpdateRequestDto updateRequestDto) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원 " + memberId + "을 찾을 수 없습니다."));
+        if(memberRepository.existsByEmail(updateRequestDto.email())) {
+            throw new IllegalArgumentException("이미 존재하는 이메일입니다: " + updateRequestDto.email());
         }
+        member.update(updateRequestDto.name(), updateRequestDto.email());
+        Member updatedMember = memberRepository.save(member);
+        return MemberResponseDto.from(updatedMember);
+    }
 
-        String token = jwtTokenProvider.createToken(member.getEmail(), member.getRole().name(), member.getId());
-        return new LoginResponseDto(token);
+    public void deleteMember(Long memberId) {
+        if (!memberRepository.existsById(memberId)) {
+            throw new IllegalArgumentException("회원 " + memberId + "을 찾을 수 없습니다.");
+        }
+        memberRepository.deleteById(memberId);
     }
 }

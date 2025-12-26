@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/model3d")
 @PreAuthorize("hasRole('ROLE_ADMIN')")
-public class AdminModel3DController {
+public class AdminModel3DController implements AdminModel3DApi {
     private final AdminModel3DService adminModel3DService;
 
     @GetMapping("/{model3dId}")

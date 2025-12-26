@@ -9,18 +9,33 @@ import org.springdoc.core.models.GroupedOpenApi;
 public class SwaggerGroupConfig {
     
     @Bean
-    public GroupedOpenApi publicApi() {
+    public GroupedOpenApi authApi() {
         return GroupedOpenApi.builder()
-                .group("일반 API")
-                .pathsToMatch("/api/**")
-                .pathsToExclude("/api/admin/**")
+                .group("인증 & 회원")
+                .pathsToMatch("/api/auth/**", "/api/members/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi model3dApi() {
+        return GroupedOpenApi.builder()
+                .group("3D 모델")
+                .pathsToMatch("/api/model3d/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi recommendApi() {
+        return GroupedOpenApi.builder()
+                .group("AI 추천")
+                .pathsToMatch("/api/recommendations/**")
                 .build();
     }
 
     @Bean
     public GroupedOpenApi adminApi() {
         return GroupedOpenApi.builder()
-                .group("Admin API")
+                .group("관리자")
                 .pathsToMatch("/api/admin/**")
                 .build();
     }

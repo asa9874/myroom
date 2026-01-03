@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: devQuest
+  datasource:
+    url: jdbc:mysql://localhost:3307/myroom?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&allowMultiQueries=true&createDatabaseIfNotExist=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: myroom
+    password: 0000
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+
+springdoc:
+  swagger-ui:
+    persistAuthorization: true
+    tryItOutEnabled: true

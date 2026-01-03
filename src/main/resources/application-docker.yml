@@ -1,0 +1,20 @@
+spring: # SpringBoot를 Docker 컨테이너에서 실행할 때 사용할 설정
+  application:
+    name: devQuest
+  datasource:
+    url: jdbc:mysql://mysql:3306/myroom?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: myroom
+    password: 0000
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+
+springdoc:
+  swagger-ui:
+    persistAuthorization: true
+    tryItOutEnabled: true
+

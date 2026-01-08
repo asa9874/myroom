@@ -17,6 +17,11 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
       location: C:/uploads/
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
 
 springdoc:
   swagger-ui:

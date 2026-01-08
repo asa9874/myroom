@@ -16,10 +16,26 @@ services:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
+  # RabbitMQ 설정 추가
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    container_name: rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"   # AMQP 통신 포트
+      - "15672:15672" # Management UI 포트 (브라우저 접속용)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
 volumes:
   elasticsearch_data:
     driver: local
   mysql_data:
+    driver: local
+  rabbitmq_data: # RabbitMQ 데이터 영속성을 위한 볼륨 추가
     driver: local
 
 #docker-compose up --build

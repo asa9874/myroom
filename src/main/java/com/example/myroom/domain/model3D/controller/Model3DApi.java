@@ -1,4 +1,4 @@
-﻿package com.example.myroom.domain.model3D.controller;
+package com.example.myroom.domain.model3D.controller;
 
 import java.util.List;
 

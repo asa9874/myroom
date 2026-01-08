@@ -28,7 +28,7 @@ public class ImageUploadService {
             String fileName = System.currentTimeMillis() + "." + getFileExtension(originalFileName);
             String filePath = UPLOAD_DIR + fileName;
             file.transferTo(new File(filePath));
-            return "/images/" + fileName;
+            return "http://localhost:8080/images/" + fileName;
         } catch (IOException e) {
             log.error("File upload failed", e);
             throw new IOException("Image Upload Fail", e);

@@ -11,6 +11,7 @@ import com.example.myroom.domain.image.ImageUploadService;
 import com.example.myroom.domain.model3D.dto.request.Model3DCreateRequestDto;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
 import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
+import com.example.myroom.domain.model3D.messaging.Model3DProducer;
 import com.example.myroom.domain.model3D.model.Model3D;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
 
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class Model3DService {
     private final Model3DRepository model3DRepository;
     private final ImageUploadService imageUploadService;
+    private final Model3DProducer model3DProducer;
 
     public Model3DResponseDto getModel3DById(Long model3dId) {
         Model3D model3D = model3DRepository.findById(model3dId)
@@ -82,6 +84,10 @@ public class Model3DService {
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
+
+        // RabbitMQ로 메시지 전송
+        model3DProducer.sendModel3DUploadMessage(imageUrl, memberId);
+
         return imageUrl;
     }
 }

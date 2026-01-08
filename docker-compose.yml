@@ -25,10 +25,5 @@ volumes:
 #docker-compose up --build
 
 
-
-#docker exec -it mysql mysql -u root -p
-
-#docker exec -it mysql mysql -u devquest -p
-#devquest1234
-
+ 
 #use devquest;

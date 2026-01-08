@@ -2,6 +2,7 @@ package com.example.myroom.domain.model3D.controller;
 
 import java.util.List;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,7 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.model3D.dto.request.Model3DCreateRequestDto;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
@@ -70,4 +73,13 @@ public class Model3DController implements Model3DApi {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<String> uploadModel3DFile(
+            @RequestPart(value = "image", required = true) MultipartFile imageFile,
+            @AuthenticationPrincipal CustomUserDetails member) {
+        String fileUrl = model3DService.uploadModel3DFile(imageFile, member.getId());
+        return ResponseEntity.ok(fileUrl);
+    }
+    
 }

@@ -1,10 +1,13 @@
 package com.example.myroom.domain.model3D.service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.example.myroom.domain.image.ImageUploadService;
 import com.example.myroom.domain.model3D.dto.request.Model3DCreateRequestDto;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
 import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
@@ -17,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class Model3DService {
     private final Model3DRepository model3DRepository;
+    private final ImageUploadService imageUploadService;
 
     public Model3DResponseDto getModel3DById(Long model3dId) {
         Model3D model3D = model3DRepository.findById(model3dId)
@@ -71,4 +75,13 @@ public class Model3DService {
         model3DRepository.deleteById(model3dId);
     }
 
+    public String uploadModel3DFile(MultipartFile file, Long memberId) {
+        String imageUrl;
+        try {
+            imageUrl = imageUploadService.uploadImage(file);
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+        return imageUrl;
+    }
 }

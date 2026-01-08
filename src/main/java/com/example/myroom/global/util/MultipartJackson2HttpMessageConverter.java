@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
+@SuppressWarnings("deprecation")
 public class MultipartJackson2HttpMessageConverter extends AbstractJackson2HttpMessageConverter {
 
     /**

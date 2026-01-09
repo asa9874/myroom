@@ -32,10 +32,9 @@ public class Model3DProducer {
         log.info("3D 모델 업로드 메시지 발송: imageUrl={}, memberId={}", imageUrl, memberId);
 
         rabbitTemplate.convertAndSend(
-                RabbitConfig.MODEL3D_EXCHANGE,
-                RabbitConfig.MODEL3D_ROUTING_KEY,
-                message
+                RabbitConfig.MODEL3D_EXCHANGE, // 어느 교환기(우체국)로 보낼지
+                RabbitConfig.MODEL3D_ROUTING_KEY, // 어떤 주소(라우팅 키)로 보낼지
+                message // 보낼 내용(메시지 객체)
         );
     }
 }
-

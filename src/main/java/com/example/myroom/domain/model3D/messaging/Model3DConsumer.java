@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import com.example.myroom.domain.model3D.dto.message.Model3DGenerationResponse;
 import com.example.myroom.domain.model3D.service.Model3DService;
+import com.example.myroom.domain.socket.service.WebSocketNotificationService;
 import com.example.myroom.global.config.RabbitConfig;
 
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Model3DConsumer {
 
     private final Model3DService model3DService;
+    private final WebSocketNotificationService webSocketNotificationService;
 
     /**
      * 3D 모델 생성 완료 메시지 처리
@@ -50,14 +52,30 @@ public class Model3DConsumer {
             if ("SUCCESS".equalsIgnoreCase(response.getStatus())) {
                 // 성공: 3D 모델 정보를 DB에 저장
                 log.info("✅ 3D 모델 생성 성공 - DB 저장 시작");
+                log.info("🖼️ 저장할 이미지 URL: {}", response.getOriginalImageUrl());
+                log.info("🎨 저장할 3D 모델 URL: {}", response.getModel3dUrl());
                 model3DService.saveGeneratedModel(response);
                 log.info("✅ DB 저장 완료");
+                
+                // WebSocket으로 클라이언트에게 실시간 알림 전송
+                log.info("📤 WebSocket 알림 발송 시작 - 회원 {}에게 전송", response.getMemberId());
+                log.info("📤 전송할 이미지 정보: originalImageUrl={}", response.getOriginalImageUrl());
+                log.info("📤 전송할 3D 모델 정보: model3dUrl={}", response.getModel3dUrl());
+                webSocketNotificationService.sendModel3DGenerationNotification(response);
+                log.info("✅ WebSocket 알림 발송 완료");
                 
             } else if ("FAILED".equalsIgnoreCase(response.getStatus())) {
                 // 실패: 에러 로그 기록 및 알림 처리
                 log.error("❌ 3D 모델 생성 실패 - 회원 ID: {}, 에러: {}", 
                     response.getMemberId(), response.getMessage());
+                log.error("❌ 실패한 이미지 URL: {}", response.getOriginalImageUrl());
                 model3DService.handleGenerationFailure(response);
+                
+                // 실패 시에도 WebSocket으로 알림 전송
+                log.info("📤 WebSocket 실패 알림 발송 시작 - 회원 {}에게 전송", response.getMemberId());
+                log.info("📤 실패한 이미지 정보: originalImageUrl={}", response.getOriginalImageUrl());
+                webSocketNotificationService.sendModel3DGenerationNotification(response);
+                log.info("✅ WebSocket 실패 알림 발송 완료");
                 
             } else {
                 // 기타 상태 (PROCESSING 등)

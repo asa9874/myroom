@@ -1,5 +1,6 @@
 package com.example.myroom.domain.model3D.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
@@ -18,6 +19,7 @@ public record Model3DCreateRequestDto(
         String link,
         
         @Schema(description = "공유 여부", requiredMode = RequiredMode.NOT_REQUIRED)
+        @JsonProperty("is_shared")
         Boolean isShared,
         
         @Schema(description = "모델 설명", requiredMode = RequiredMode.NOT_REQUIRED)

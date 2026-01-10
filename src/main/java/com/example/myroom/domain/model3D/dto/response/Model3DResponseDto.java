@@ -3,6 +3,7 @@ package com.example.myroom.domain.model3D.dto.response;
 import java.time.LocalDateTime;
 
 import com.example.myroom.domain.model3D.model.Model3D;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
@@ -27,6 +28,7 @@ public record Model3DResponseDto(
         Long creatorId,
         
         @Schema(description = "공유 여부", requiredMode = RequiredMode.REQUIRED)
+        @JsonProperty("is_shared")
         Boolean isShared,
         
         @Schema(description = "모델 설명", requiredMode = RequiredMode.REQUIRED)

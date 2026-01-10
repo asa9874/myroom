@@ -157,6 +157,17 @@ public class Model3DService {
         }
         return model3Ds.map(Model3DResponseDto::from);
     }
+
+    public Page<Model3DResponseDto> getSharedModel3Ds(Long memberId, String name, Pageable pageable) {
+        Page<Model3D> model3Ds;
+
+        if (name != null && !name.isEmpty()) {
+            model3Ds = model3DRepository.findByIsSharedTrueAndNameContaining(name, pageable);
+        } else {
+            model3Ds = model3DRepository.findByIsSharedTrue(pageable);
+        }
+        return model3Ds.map(Model3DResponseDto::from);
+    }
     
     private boolean isOwner(Long modelCreatorId, Long memberId) {
         return modelCreatorId.equals(memberId);

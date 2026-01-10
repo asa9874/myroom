@@ -6,6 +6,7 @@ import com.example.myroom.domain.model3D.model.Model3D;
 
 public record AdminModel3DResponseDto(
         Long id,
+        String name,
         LocalDateTime createdAt,
         String link,
         Long creatorId,
@@ -15,6 +16,7 @@ public record AdminModel3DResponseDto(
     public static AdminModel3DResponseDto from(Model3D model3D) {
         return new AdminModel3DResponseDto(
                 model3D.getId(),
+                model3D.getName(),
                 model3D.getCreatedAt(),
                 model3D.getLink(),
                 model3D.getCreatorId(),

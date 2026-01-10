@@ -33,6 +33,7 @@ public class AdminModel3DService {
 
     public AdminModel3DResponseDto createModel3D(AdminModel3DCreateRequestDto createRequestDto) {
         Model3D model3D = Model3D.builder()
+                .name(createRequestDto.name())
                 .createdAt(LocalDateTime.now())
                 .link(createRequestDto.link())
                 .creatorId(createRequestDto.creatorId())
@@ -48,6 +49,7 @@ public class AdminModel3DService {
                 .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + model3dId + "을 찾을 수 없습니다."));
 
         model3D.adminUpdate(
+                updateRequestDto.name(),
                 updateRequestDto.link(),
                 updateRequestDto.creatorId(),
                 updateRequestDto.isShared(),

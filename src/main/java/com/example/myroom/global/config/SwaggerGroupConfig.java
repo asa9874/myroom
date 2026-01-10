@@ -20,7 +20,7 @@ public class SwaggerGroupConfig {
     public GroupedOpenApi model3dApi() {
         return GroupedOpenApi.builder()
                 .group("3D 모델")
-                .pathsToMatch("/api/model3d/**")
+                .pathsToMatch("/api/model3ds/**")
                 .build();
     }
 

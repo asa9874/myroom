@@ -4,14 +4,15 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.image.ImageUploadService;
-import com.example.myroom.domain.model3D.dto.request.Model3DCreateRequestDto;
+import com.example.myroom.domain.model3D.dto.message.Model3DGenerationResponse;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
 import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
-import com.example.myroom.domain.model3D.dto.message.Model3DGenerationResponse;
 import com.example.myroom.domain.model3D.messaging.Model3DProducer;
 import com.example.myroom.domain.model3D.model.Model3D;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
@@ -45,6 +46,7 @@ public class Model3DService {
         }
 
         model3D.update(
+                updateRequestDto.name(),
                 updateRequestDto.isShared(),
                 updateRequestDto.description());
 
@@ -79,12 +81,6 @@ public class Model3DService {
         return imageUrl;
     }
 
-    /**
-     * 3D 모델 생성 완료 후 DB 저장
-     * - 3D 모델 생성 서버에서 성공적으로 모델을 생성한 경우 호출됩니다.
-     * 
-     * @param response 3D 모델 생성 완료 응답 메시지
-     */
     public void saveGeneratedModel(Model3DGenerationResponse response) {
         log.info("💾 3D 모델 DB 저장 시작: memberId={}, modelUrl={}", 
             response.getMemberId(), response.getModel3dUrl());
@@ -92,6 +88,7 @@ public class Model3DService {
         try {
             // 임의 로직: 생성된 3D 모델 정보를 DB에 저장
             Model3D model3D = Model3D.builder()
+                    .name("AI 생성 모델") // 기본 이름
                     .createdAt(LocalDateTime.now())
                     .link(response.getModel3dUrl()) // 생성된 3D 모델 URL
                     .thumbnailUrl(response.getThumbnailUrl()) // 썸네일 이미지 URL
@@ -120,12 +117,6 @@ public class Model3DService {
         }
     }
 
-    /**
-     * 3D 모델 생성 실패 처리
-     * - 3D 모델 생성 서버에서 실패한 경우 호출됩니다.
-     * 
-     * @param response 3D 모델 생성 실패 응답 메시지
-     */
     public void handleGenerationFailure(Model3DGenerationResponse response) {
         log.error("💥 3D 모델 생성 실패 처리: memberId={}, message={}", 
             response.getMemberId(), response.getMessage());
@@ -150,6 +141,23 @@ public class Model3DService {
         }
     }
 
+    public List<Model3DResponseDto> getAllModel3Ds(Long memberId) {
+        List<Model3D> model3Ds = model3DRepository.findAll();
+        return model3Ds.stream()
+                .map(Model3DResponseDto::from)
+                .toList();
+    }
+
+    public Page<Model3DResponseDto> getModel3DsByMemberId(Long targetMemberId, Long memberId, String name, Pageable pageable) {
+        Page<Model3D> model3Ds;
+        if (name != null && !name.isEmpty()) {
+            model3Ds = model3DRepository.findByCreatorIdAndNameContaining(targetMemberId, name, pageable);
+        } else {
+            model3Ds = model3DRepository.findByCreatorId(targetMemberId, pageable);
+        }
+        return model3Ds.map(Model3DResponseDto::from);
+    }
+    
     private boolean isOwner(Long modelCreatorId, Long memberId) {
         return modelCreatorId.equals(memberId);
     }

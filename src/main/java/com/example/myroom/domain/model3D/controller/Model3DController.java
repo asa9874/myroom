@@ -2,6 +2,8 @@ package com.example.myroom.domain.model3D.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,11 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.myroom.domain.model3D.dto.request.Model3DCreateRequestDto;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
 import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
 import com.example.myroom.domain.model3D.service.Model3DService;
@@ -28,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/model3d")
+@RequestMapping("/api/model3ds")
 public class Model3DController implements Model3DApi {
     private final Model3DService model3DService;
 
@@ -37,10 +39,9 @@ public class Model3DController implements Model3DApi {
     public ResponseEntity<Model3DResponseDto> getModel3DById(
             @PathVariable(name = "model3dId") Long model3dId,
             @AuthenticationPrincipal CustomUserDetails member) {
-        Model3DResponseDto responseDto = model3DService.getModel3DById(model3dId,member.getId());
+        Model3DResponseDto responseDto = model3DService.getModel3DById(model3dId, member.getId());
         return ResponseEntity.ok(responseDto);
     }
-
 
     @PutMapping("/{model3dId}")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
@@ -70,6 +71,23 @@ public class Model3DController implements Model3DApi {
         return ResponseEntity.ok(fileUrl);
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<List<Model3DResponseDto>> getAllModel3Ds(
+            @AuthenticationPrincipal CustomUserDetails member) {
+        List<Model3DResponseDto> responseDtos = model3DService.getAllModel3Ds(member.getId());
+        return ResponseEntity.ok(responseDtos);
+    }
 
-    
+    @GetMapping("/member/{memberId}/search")
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Page<Model3DResponseDto>> getModel3DsByMemberId(
+            @PathVariable(name = "memberId") Long memberId,
+            @AuthenticationPrincipal CustomUserDetails member,
+            @RequestParam(required = false, name = "name") String name,
+            Pageable pageable) {
+        Page<Model3DResponseDto> responseDtos = model3DService.getModel3DsByMemberId(memberId, member.getId(), name, pageable);
+        return ResponseEntity.ok(responseDtos);
+    }
+
 }

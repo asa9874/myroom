@@ -14,6 +14,9 @@ public record Model3DResponseDto(
         @Schema(description = "모델 ID", requiredMode = RequiredMode.REQUIRED)
         Long id,
         
+        @Schema(description = "모델 이름", requiredMode = RequiredMode.REQUIRED)
+        String name,
+        
         @Schema(description = "생성 일시", requiredMode = RequiredMode.REQUIRED)
         LocalDateTime createdAt,
         
@@ -35,6 +38,7 @@ public record Model3DResponseDto(
     public static Model3DResponseDto from(Model3D model3D) {
         return new Model3DResponseDto(
                 model3D.getId(),
+                model3D.getName(),
                 model3D.getCreatedAt(),
                 model3D.getLink(),
                 model3D.getCreatorId(),

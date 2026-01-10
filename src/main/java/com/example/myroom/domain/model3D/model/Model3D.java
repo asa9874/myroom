@@ -18,6 +18,7 @@ public class Model3D {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String name;
     private LocalDateTime createdAt;
     private String link;
     private Long creatorId;
@@ -26,7 +27,8 @@ public class Model3D {
     private String thumbnailUrl;
 
     @Builder
-    public Model3D(LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl) {
+    public Model3D(String name, LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl) {
+        this.name = name;
         this.createdAt = createdAt;
         this.link = link;
         this.creatorId = creatorId;
@@ -35,7 +37,10 @@ public class Model3D {
         this.thumbnailUrl = thumbnailUrl;
     }
 
-    public void update(Boolean isShared, String description) {
+    public void update(String name, Boolean isShared, String description) {
+        if (name != null) {
+            this.name = name;
+        }
         if (isShared != null) {
             this.isShared = isShared;
         }
@@ -44,7 +49,10 @@ public class Model3D {
         }
     }
 
-    public void adminUpdate(String link, Long creatorId, Boolean isShared, String description) {
+    public void adminUpdate(String name, String link, Long creatorId, Boolean isShared, String description) {
+        if (name != null) {
+            this.name = name;
+        }
         if (link != null) {
             this.link = link;
         }

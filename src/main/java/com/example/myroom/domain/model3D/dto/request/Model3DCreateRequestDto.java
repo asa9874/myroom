@@ -9,6 +9,10 @@ import jakarta.validation.constraints.NotEmpty;
 
 @JsonNaming(SnakeCaseStrategy.class)
 public record Model3DCreateRequestDto(
+        @Schema(description = "3D 모델 이름", requiredMode = RequiredMode.REQUIRED)
+        @NotEmpty(message = "이름은 비어 있을 수 없습니다.")
+        String name,
+        
         @Schema(description = "3D 모델 링크", requiredMode = RequiredMode.REQUIRED)
         @NotEmpty(message = "링크는 비어 있을 수 없습니다.")
         String link,

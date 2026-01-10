@@ -27,7 +27,10 @@ public record Model3DResponseDto(
         Boolean isShared,
         
         @Schema(description = "모델 설명", requiredMode = RequiredMode.REQUIRED)
-        String description
+        String description,
+
+        @Schema(description = "썸네일 URL", requiredMode = RequiredMode.NOT_REQUIRED)
+        String thumbnailUrl
 ) {
     public static Model3DResponseDto from(Model3D model3D) {
         return new Model3DResponseDto(
@@ -36,7 +39,8 @@ public record Model3DResponseDto(
                 model3D.getLink(),
                 model3D.getCreatorId(),
                 model3D.getIsShared(),
-                model3D.getDescription()
+                model3D.getDescription(),
+                model3D.getThumbnailUrl()
         );
     }
     

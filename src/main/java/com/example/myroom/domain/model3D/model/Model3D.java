@@ -23,20 +23,19 @@ public class Model3D {
     private Long creatorId;
     private Boolean isShared = false;
     private String description;
+    private String thumbnailUrl;
 
     @Builder
-    public Model3D(LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description) {
+    public Model3D(LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl) {
         this.createdAt = createdAt;
         this.link = link;
         this.creatorId = creatorId;
         this.isShared = isShared != null ? isShared : false;
         this.description = description;
+        this.thumbnailUrl = thumbnailUrl;
     }
 
-    public void update(String link, Boolean isShared, String description) {
-        if (link != null) {
-            this.link = link;
-        }
+    public void update(Boolean isShared, String description) {
         if (isShared != null) {
             this.isShared = isShared;
         }

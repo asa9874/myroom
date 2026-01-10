@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.image.ImageUploadService;
+import com.example.myroom.domain.image.S3ImageUploadService;
 import com.example.myroom.domain.model3D.dto.message.Model3DGenerationResponse;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
 import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Model3DService {
     private final Model3DRepository model3DRepository;
     private final ImageUploadService imageUploadService;
+    private final S3ImageUploadService s3ImageUploadService;
     private final Model3DProducer model3DProducer;
 
     public Model3DResponseDto getModel3DById(Long model3dId, Long memberId) {
@@ -67,8 +69,9 @@ public class Model3DService {
 
     public String uploadModel3DFile(MultipartFile file, Long memberId) {
         String imageUrl;
-        try {
-            imageUrl = imageUploadService.uploadImage(file);
+        try { //TODO: 여기 produc에서는 S3로 할거임
+            //imageUrl = imageUploadService.uploadImage(file);
+            imageUrl = s3ImageUploadService.uploadImage(file);
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }

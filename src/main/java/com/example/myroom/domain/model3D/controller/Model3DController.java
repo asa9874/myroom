@@ -33,26 +33,14 @@ public class Model3DController implements Model3DApi {
     private final Model3DService model3DService;
 
     @GetMapping("/{model3dId}")
-    public ResponseEntity<Model3DResponseDto> getModel3DById(
-            @PathVariable(name = "model3dId") Long model3dId) {
-        Model3DResponseDto responseDto = model3DService.getModel3DById(model3dId);
-        return ResponseEntity.ok(responseDto);
-    }
-
-    @GetMapping("/")
-    public ResponseEntity<List<Model3DResponseDto>> getAllModel3D() {
-        List<Model3DResponseDto> model3DList = model3DService.getAllModel3D();
-        return ResponseEntity.ok(model3DList);
-    }
-
-    @PostMapping("/")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Model3DResponseDto> createModel3D(
-            @Valid @RequestBody Model3DCreateRequestDto createRequestDto,
+    public ResponseEntity<Model3DResponseDto> getModel3DById(
+            @PathVariable(name = "model3dId") Long model3dId,
             @AuthenticationPrincipal CustomUserDetails member) {
-        Model3DResponseDto responseDto = model3DService.createModel3D(createRequestDto, member.getId());
+        Model3DResponseDto responseDto = model3DService.getModel3DById(model3dId,member.getId());
         return ResponseEntity.ok(responseDto);
     }
+
 
     @PutMapping("/{model3dId}")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
@@ -81,5 +69,7 @@ public class Model3DController implements Model3DApi {
         String fileUrl = model3DService.uploadModel3DFile(imageFile, member.getId());
         return ResponseEntity.ok(fileUrl);
     }
+
+
     
 }

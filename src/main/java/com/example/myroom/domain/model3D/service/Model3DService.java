@@ -27,41 +27,24 @@ public class Model3DService {
     private final ImageUploadService imageUploadService;
     private final Model3DProducer model3DProducer;
 
-    public Model3DResponseDto getModel3DById(Long model3dId) {
+    public Model3DResponseDto getModel3DById(Long model3dId, Long memberId) {
         Model3D model3D = model3DRepository.findById(model3dId)
                 .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + model3dId + "을 찾을 수 없습니다."));
+        if (!isOwner(model3D.getCreatorId(), memberId)) {
+            throw new IllegalArgumentException("3D 모델에 접근할 권한이 없습니다.");
+        }
         return Model3DResponseDto.from(model3D);
-    }
-
-    public List<Model3DResponseDto> getAllModel3D() {
-        List<Model3D> model3DList = model3DRepository.findAll();
-        return model3DList.stream()
-                .map(Model3DResponseDto::from)
-                .toList();
-    }
-
-    public Model3DResponseDto createModel3D(Model3DCreateRequestDto createRequestDto, Long creatorId) {
-        Model3D model3D = Model3D.builder()
-                .createdAt(LocalDateTime.now())
-                .link(createRequestDto.link())
-                .creatorId(creatorId)
-                .isShared(createRequestDto.isShared())
-                .description(createRequestDto.description())
-                .build();
-        Model3D savedModel3D = model3DRepository.save(model3D);
-        return Model3DResponseDto.from(savedModel3D);
     }
 
     public Model3DResponseDto updateModel3D(Long model3dId, Model3DUpdateRequestDto updateRequestDto, Long memberId) {
         Model3D model3D = model3DRepository.findById(model3dId)
                 .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + model3dId + "을 찾을 수 없습니다."));
 
-        if (!model3D.getCreatorId().equals(memberId)) {
+        if (!isOwner(model3D.getCreatorId(), memberId)) {
             throw new IllegalArgumentException("3D 모델을 수정할 권한이 없습니다.");
         }
 
         model3D.update(
-                updateRequestDto.link(),
                 updateRequestDto.isShared(),
                 updateRequestDto.description());
 
@@ -90,6 +73,8 @@ public class Model3DService {
 
         // RabbitMQ로 메시지 전송
         model3DProducer.sendModel3DUploadMessage(imageUrl, memberId);
+        
+        
 
         return imageUrl;
     }
@@ -109,12 +94,15 @@ public class Model3DService {
             Model3D model3D = Model3D.builder()
                     .createdAt(LocalDateTime.now())
                     .link(response.getModel3dUrl()) // 생성된 3D 모델 URL
+                    .thumbnailUrl(response.getThumbnailUrl()) // 썸네일 이미지 URL
                     .creatorId(response.getMemberId()) // 요청한 회원 ID
                     .isShared(false) // 기본값: 비공개
                     .description("AI 생성 3D 모델 - " + LocalDateTime.now()) // 자동 생성 설명
                     .build();
 
             Model3D savedModel = model3DRepository.save(model3D);
+            
+            log.info("🖼️ 썸네일 URL 저장: {}", response.getThumbnailUrl());
             
             log.info("✅ 3D 모델 DB 저장 성공: model3DId={}, creatorId={}", 
                 savedModel.getId(), savedModel.getCreatorId());
@@ -160,5 +148,9 @@ public class Model3DService {
         } catch (Exception e) {
             log.error("❌ 실패 처리 중 추가 오류 발생: {}", e.getMessage(), e);
         }
+    }
+
+    private boolean isOwner(Long modelCreatorId, Long memberId) {
+        return modelCreatorId.equals(memberId);
     }
 }

@@ -8,8 +8,6 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 
 @JsonNaming(SnakeCaseStrategy.class)
 public record Model3DUpdateRequestDto(
-        @Schema(description = "변경할 3D 모델 링크", requiredMode = RequiredMode.NOT_REQUIRED)
-        String link,
         
         @Schema(description = "변경할 공유 여부", requiredMode = RequiredMode.NOT_REQUIRED)
         Boolean isShared,

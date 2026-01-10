@@ -1,6 +1,8 @@
 spring:
   application:
     name: devQuest
+  profiles:
+    include: s3
   datasource:
     url: jdbc:mysql://localhost:3307/myroom?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&allowMultiQueries=true&createDatabaseIfNotExist=true
     driver-class-name: com.mysql.cj.jdbc.Driver

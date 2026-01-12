@@ -70,8 +70,8 @@ public class Model3DService {
     public String uploadModel3DFile(MultipartFile file, Long memberId) {
         String imageUrl;
         try { //TODO: 여기 produc에서는 S3로 할거임
-            //imageUrl = imageUploadService.uploadImage(file);
-            imageUrl = s3ImageUploadService.uploadImage(file);
+            imageUrl = imageUploadService.uploadImage(file);
+            //imageUrl = s3ImageUploadService.uploadImage(file);
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }

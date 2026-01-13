@@ -50,7 +50,8 @@ public class Model3DService {
         model3D.update(
                 updateRequestDto.name(),
                 updateRequestDto.isShared(),
-                updateRequestDto.description());
+                updateRequestDto.description(),
+                null);
 
         Model3D updatedModel3D = model3DRepository.save(model3D);
         return Model3DResponseDto.from(updatedModel3D);
@@ -98,6 +99,7 @@ public class Model3DService {
                     .creatorId(response.getMemberId()) // 요청한 회원 ID
                     .isShared(false) // 기본값: 비공개
                     .description("AI 생성 3D 모델 - " + LocalDateTime.now()) // 자동 생성 설명
+                    .isVectorDbTrained(false) // 기본값: VectorDB 미학습
                     .build();
 
             Model3D savedModel = model3DRepository.save(model3D);
@@ -170,6 +172,13 @@ public class Model3DService {
             model3Ds = model3DRepository.findByIsSharedTrue(pageable);
         }
         return model3Ds.map(Model3DResponseDto::from);
+    }
+
+    public List<Model3DResponseDto> getNotVectorDbTrainedModel3Ds() {
+        List<Model3D> model3Ds = model3DRepository.findByIsVectorDbTrainedFalse();
+        return model3Ds.stream()
+                .map(Model3DResponseDto::from)
+                .toList();
     }
     
     private boolean isOwner(Long modelCreatorId, Long memberId) {

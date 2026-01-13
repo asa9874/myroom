@@ -1,5 +1,7 @@
 package com.example.myroom.domain.model3D.repository;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +14,6 @@ public interface Model3DRepository extends JpaRepository<Model3D, Long> {
 
     Page<Model3D> findByIsSharedTrue(Pageable pageable);
     Page<Model3D> findByIsSharedTrueAndNameContaining(String name, Pageable pageable);
+
+    List<Model3D> findByIsVectorDbTrainedFalse();
 }

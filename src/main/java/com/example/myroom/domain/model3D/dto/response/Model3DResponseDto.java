@@ -35,7 +35,11 @@ public record Model3DResponseDto(
         String description,
 
         @Schema(description = "썸네일 URL", requiredMode = RequiredMode.NOT_REQUIRED)
-        String thumbnailUrl
+        String thumbnailUrl,
+
+        @Schema(description = "VectorDB 학습 완료 여부", requiredMode = RequiredMode.REQUIRED)
+        @JsonProperty("is_vector_db_trained")
+        Boolean isVectorDbTrained
 ) {
     public static Model3DResponseDto from(Model3D model3D) {
         return new Model3DResponseDto(
@@ -46,7 +50,8 @@ public record Model3DResponseDto(
                 model3D.getCreatorId(),
                 model3D.getIsShared(),
                 model3D.getDescription(),
-                model3D.getThumbnailUrl()
+                model3D.getThumbnailUrl(),
+                model3D.getIsVectorDbTrained()
         );
     }
     

@@ -90,12 +90,18 @@ public class Model3DController implements Model3DApi {
         return ResponseEntity.ok(responseDtos);
     }
 
-    @GetMapping("shared/search")
+    @GetMapping("/shared/search")
     public ResponseEntity<Page<Model3DResponseDto>> getSharedModel3Ds(
             @AuthenticationPrincipal CustomUserDetails member,
             @RequestParam(required = false, name = "name") String name,
             Pageable pageable) {
         Page<Model3DResponseDto> responseDtos = model3DService.getSharedModel3Ds(member.getId(), name, pageable);
+        return ResponseEntity.ok(responseDtos);
+    }
+
+    @GetMapping("/untrained")
+    public ResponseEntity<List<Model3DResponseDto>> getNotVectorDbTrainedModel3Ds() {
+        List<Model3DResponseDto> responseDtos = model3DService.getNotVectorDbTrainedModel3Ds();
         return ResponseEntity.ok(responseDtos);
     }
 }

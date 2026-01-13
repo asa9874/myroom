@@ -28,6 +28,19 @@ public class RabbitConfig {
     // Routing Key: 3D 모델 생성 완료 메시지용 라우팅 키
     public static final String MODEL3D_RESPONSE_ROUTING_KEY = "model3d.response";
 
+    // ===== 추천 기능 관련 설정 =====
+    // Exchange: 추천 요청 메시지를 배정하는 교환기
+    public static final String RECOMMAND_EXCHANGE = "recommand.exchange";
+    // Queue: 추천 요청 메시지를 받는 큐
+    public static final String RECOMMAND_QUEUE = "recommand.request.queue";
+    // Routing Key: 추천 요청 메시지용 라우팅 키
+    public static final String RECOMMAND_ROUTING_KEY = "recommand.request";
+    
+    // Queue: 추천 결과 응답 메시지를 받는 큐
+    public static final String RECOMMAND_RESPONSE_QUEUE = "recommand.response.queue";
+    // Routing Key: 추천 결과 응답 메시지용 라우팅 키
+    public static final String RECOMMAND_RESPONSE_ROUTING_KEY = "recommand.response";
+
     /**
      * 메시지 컨버터 설정
      * - RabbitMQ는 기본적으로 byte 배열로 메시지를 전송합니다.
@@ -95,5 +108,62 @@ public class RabbitConfig {
         return BindingBuilder.bind(model3dResponseQueue)
                 .to(model3dExchange)
                 .with(MODEL3D_RESPONSE_ROUTING_KEY);
+    }
+
+    // ===== 추천 기능 관련 Bean 설정 =====
+
+    /**
+     * 추천 Topic Exchange 생성
+     * - Topic 방식: 라우팅 키의 패턴을 보고 메시지를 배정
+     */
+    @Bean
+    public TopicExchange recommandExchange() {
+        return new TopicExchange(RECOMMAND_EXCHANGE, true, false);
+    }
+
+    /**
+     * 추천 요청 Queue 생성
+     * - AI 추천 서버로 보낼 추천 요청 메시지를 대기시키는 큐
+     */
+    @Bean
+    public Queue recommandQueue() {
+        return new Queue(RECOMMAND_QUEUE, true);
+    }
+
+    /**
+     * 추천 요청 Binding 설정
+     * - "recommandExchange"로 들어온 메시지 중에서
+     * - 라우팅 키가 "recommand.request"인 메시지는
+     * - "recommandQueue"로 전달합니다.
+     */
+    @Bean
+    public Binding recommandBinding(@Qualifier("recommandQueue") Queue recommandQueue, 
+                                     @Qualifier("recommandExchange") TopicExchange recommandExchange) {
+        return BindingBuilder.bind(recommandQueue)
+                .to(recommandExchange)
+                .with(RECOMMAND_ROUTING_KEY);
+    }
+
+    /**
+     * 추천 결과 응답 Queue 생성
+     * - AI 추천 서버에서 분석 및 추천 결과를 받는 큐
+     */
+    @Bean
+    public Queue recommandResponseQueue() {
+        return new Queue(RECOMMAND_RESPONSE_QUEUE, true);
+    }
+
+    /**
+     * 추천 결과 응답 Binding 설정
+     * - "recommandExchange"로 들어온 메시지 중에서
+     * - 라우팅 키가 "recommand.response"인 메시지는
+     * - "recommandResponseQueue"로 전달합니다.
+     */
+    @Bean
+    public Binding recommandResponseBinding(@Qualifier("recommandResponseQueue") Queue recommandResponseQueue, 
+                                             @Qualifier("recommandExchange") TopicExchange recommandExchange) {
+        return BindingBuilder.bind(recommandResponseQueue)
+                .to(recommandExchange)
+                .with(RECOMMAND_RESPONSE_ROUTING_KEY);
     }
 }

@@ -37,3 +37,5 @@ out/
 .vscode/
 
 application-s3.yml
+
+MQLog.txt

@@ -6,6 +6,20 @@
         </encoder>
     </appender>
 
+    <!-- RabbitMQ 메시지 로그 파일 -->
+    <appender name="MQ_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/MQLog.txt</file>
+        <encoder>
+            <pattern>[%date{yyyy-MM-dd HH:mm:ss.SSS}] [%level] %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/MQLog.%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>300MB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
     <!-- 로그 레벨 설정 -->
     <root level="ERROR">
         <appender-ref ref="CONSOLE" />
@@ -16,5 +30,10 @@
 
     <!-- 패키지의 로그 -->
     <logger name="com.example" level="INFO" />
+
+    <!-- RabbitMQ 메시지 로깅 -->
+    <logger name="com.example.myroom.rabbitmq.mq" level="INFO" additivity="false">
+        <appender-ref ref="MQ_LOG_FILE" />
+    </logger>
 </configuration>
 <!--ERROR INFO DEBUG-->

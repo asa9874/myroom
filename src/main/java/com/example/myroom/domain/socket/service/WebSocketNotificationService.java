@@ -4,6 +4,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.example.myroom.domain.model3D.dto.message.Model3DGenerationResponse;
+import com.example.myroom.domain.recommand.dto.message.RecommandResponseMessage;
 import com.example.myroom.domain.socket.dto.Model3DNotificationMessage;
 
 import lombok.RequiredArgsConstructor;
@@ -125,6 +126,28 @@ public class WebSocketNotificationService {
             
         } catch (Exception e) {
             log.error("❌ 커스텀 알림 전송 실패: error={}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 추천 결과 알림 전송
+     * 
+     * @param response RabbitMQ로부터 받은 추천 결과 응답
+     */
+    public void sendRecommandNotification(RecommandResponseMessage response) {
+        log.info("📤 추천 결과 알림 전송 시작: memberId={}, status={}", 
+            response.getMemberId(), response.getStatus());
+
+        try {
+            // 추천 결과를 알림 메시지로 변환하여 WebSocket으로 전송
+            String destination = "/topic/recommand/" + response.getMemberId();
+            messagingTemplate.convertAndSend(destination, response);
+            
+            log.info("✅ 추천 결과 알림 전송 성공: destination={}", destination);
+            
+        } catch (Exception e) {
+            log.error("❌ 추천 결과 알림 전송 실패: memberId={}, error={}", 
+                response.getMemberId(), e.getMessage(), e);
         }
     }
 }

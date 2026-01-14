@@ -37,5 +37,8 @@ out/
 .vscode/
 
 application-s3.yml
+application.yml
+application-docker.yml
+docker-compose.yml
 
 MQLog.txt

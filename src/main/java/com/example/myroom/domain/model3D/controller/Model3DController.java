@@ -63,6 +63,14 @@ public class Model3DController implements Model3DApi {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteAllModel3Ds(
+            @AuthenticationPrincipal CustomUserDetails member) {
+        model3DService.deleteAllModel3Ds(member.getId());
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> uploadModel3DFile(

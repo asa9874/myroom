@@ -193,9 +193,9 @@ public class Model3DService {
         Page<Model3D> model3Ds;
 
         if (name != null && !name.isEmpty()) {
-            model3Ds = model3DRepository.findByIsSharedTrueAndNameContaining(name, pageable);
+            model3Ds = model3DRepository.findByIsSharedTrueAndNameContainingAndStatus(name, "SUCCESS", pageable);
         } else {
-            model3Ds = model3DRepository.findByIsSharedTrue(pageable);
+            model3Ds = model3DRepository.findByIsSharedTrueAndStatus("SUCCESS", pageable);
         }
         return model3Ds.map(Model3DResponseDto::from);
     }
@@ -205,6 +205,19 @@ public class Model3DService {
         return model3Ds.stream()
                 .map(Model3DResponseDto::from)
                 .toList();
+    }
+
+    public void deleteAllModel3Ds(Long memberId) {
+        List<Model3D> model3Ds = model3DRepository.findAll();
+        List<Model3D> userModel3Ds = model3Ds.stream()
+                .filter(model3D -> model3D.getCreatorId().equals(memberId))
+                .toList();
+        
+        if (userModel3Ds.isEmpty()) {
+            throw new IllegalArgumentException("삭제할 3D 모델이 없습니다.");
+        }
+        
+        model3DRepository.deleteAll(userModel3Ds);
     }
     
     private boolean isOwner(Long modelCreatorId, Long memberId) {

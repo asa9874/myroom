@@ -28,7 +28,7 @@ public class SwaggerGroupConfig {
     public GroupedOpenApi recommendApi() {
         return GroupedOpenApi.builder()
                 .group("AI 추천")
-                .pathsToMatch("/api/recommendations/**")
+                .pathsToMatch("/api/recommands/**")
                 .build();
     }
 

@@ -13,6 +13,7 @@ import com.example.myroom.domain.image.ImageUploadService;
 import com.example.myroom.domain.image.S3ImageUploadService;
 import com.example.myroom.domain.model3D.dto.message.Model3DGenerationResponse;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
+import com.example.myroom.domain.model3D.dto.request.Model3DUploadRequestDto;
 import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
 import com.example.myroom.domain.model3D.messaging.Model3DProducer;
 import com.example.myroom.domain.model3D.model.Model3D;
@@ -68,7 +69,7 @@ public class Model3DService {
         model3DRepository.deleteById(model3dId);
     }
 
-    public String uploadModel3DFile(MultipartFile file, Long memberId) {
+    public String uploadModel3DFile(MultipartFile file, Model3DUploadRequestDto uploadRequestDto, Long memberId) {
         String imageUrl;
         try { //TODO: 여기 produc에서는 S3로 할거임
             imageUrl = imageUploadService.uploadImage(file);
@@ -77,37 +78,55 @@ public class Model3DService {
             throw new RuntimeException(e.getMessage());
         }
 
-        // RabbitMQ로 메시지 전송
-        model3DProducer.sendModel3DUploadMessage(imageUrl, memberId);
-        
-        
+        // 먼저 Model3D를 link=null로 저장
+        Model3D model3D = Model3D.builder()
+                .name(uploadRequestDto.name())
+                .furnitureType(uploadRequestDto.furnitureType())
+                .description(uploadRequestDto.description())
+                .isShared(uploadRequestDto.isShared() != null ? uploadRequestDto.isShared() : false)
+                .creatorId(memberId)
+                .link(null) // link는 null로 저장
+                .thumbnailUrl(imageUrl)
+                .createdAt(null) // createdAt은 null로 저장
+                .isVectorDbTrained(false)
+                .build();
 
+        Model3D savedModel = model3DRepository.save(model3D);
+        log.info("📝 3D 모델 임시 저장: model3dId={}, name={}, furnitureType={}", 
+            savedModel.getId(), savedModel.getName(), savedModel.getFurnitureType());
+
+        // RabbitMQ로 메시지 전송 (furniture_type, is_shared 포함)
+        model3DProducer.sendModel3DUploadMessage(imageUrl, memberId, savedModel.getId(), 
+            uploadRequestDto.furnitureType(), uploadRequestDto.isShared());
+        
         return imageUrl;
     }
 
     public void saveGeneratedModel(Model3DGenerationResponse response) {
-        log.info("💾 3D 모델 DB 저장 시작: memberId={}, modelUrl={}", 
-            response.getMemberId(), response.getModel3dUrl());
+        log.info("💾 3D 모델 DB 업데이트 시작: model3dId={}, modelUrl={}", 
+            response.getModel3dId(), response.getModel3dUrl());
 
         try {
-            // 임의 로직: 생성된 3D 모델 정보를 DB에 저장
-            Model3D model3D = Model3D.builder()
-                    .name("AI 생성 모델") // 기본 이름
-                    .createdAt(LocalDateTime.now())
-                    .link(response.getModel3dUrl()) // 생성된 3D 모델 URL
-                    .thumbnailUrl(response.getThumbnailUrl()) // 썸네일 이미지 URL
-                    .creatorId(response.getMemberId()) // 요청한 회원 ID
-                    .isShared(false) // 기본값: 비공개
-                    .description("AI 생성 3D 모델 - " + LocalDateTime.now()) // 자동 생성 설명
-                    .isVectorDbTrained(false) // 기본값: VectorDB 미학습
-                    .build();
+            // model3dId로 Model3D 찾기
+            Model3D model3D = model3DRepository.findById(response.getModel3dId())
+                    .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + response.getModel3dId() + "을 찾을 수 없습니다."));
 
-            Model3D savedModel = model3DRepository.save(model3D);
+            // link, createdAt, isVectorDbTrained만 업데이트
+            model3D.updateGeneratedModel(
+                    response.getModel3dUrl(), // link
+                    LocalDateTime.now(), // createdAt
+                    true // isVectorDbTrained
+            );
+
+            // 상태를 SUCCESS로 업데이트
+            model3D.updateStatus("SUCCESS");
+
+            Model3D updatedModel = model3DRepository.save(model3D);
             
             log.info("🖼️ 썸네일 URL 저장: {}", response.getThumbnailUrl());
             
-            log.info("✅ 3D 모델 DB 저장 성공: model3DId={}, creatorId={}", 
-                savedModel.getId(), savedModel.getCreatorId());
+            log.info("✅ 3D 모델 DB 업데이트 성공: model3DId={}, status={}", 
+                updatedModel.getId(), updatedModel.getStatus());
             
             // 추가 로직 예시:
             // 1. 회원에게 푸시 알림 전송 (생성 완료 알림)
@@ -116,33 +135,40 @@ public class Model3DService {
             // 4. 캐시 갱신
             
         } catch (Exception e) {
-            log.error("❌ 3D 모델 DB 저장 실패: memberId={}, error={}", 
-                response.getMemberId(), e.getMessage(), e);
-            throw new RuntimeException("3D 모델 저장 중 오류가 발생했습니다.", e);
+            log.error("❌ 3D 모델 DB 업데이트 실패: model3dId={}, error={}", 
+                response.getModel3dId(), e.getMessage(), e);
+            throw new RuntimeException("3D 모델 업데이트 중 오류가 발생했습니다.", e);
         }
     }
 
     public void handleGenerationFailure(Model3DGenerationResponse response) {
-        log.error("💥 3D 모델 생성 실패 처리: memberId={}, message={}", 
-            response.getMemberId(), response.getMessage());
+        log.error("💥 3D 모델 생성 실패 처리: model3dId={}, memberId={}, message={}", 
+            response.getModel3dId(), response.getMemberId(), response.getMessage());
 
         try {
-            // 임의 로직: 실패 내역 기록 및 처리
-            // 1. 실패 로그를 별도 테이블에 저장 (향후 분석용)
-            // 2. 회원에게 실패 알림 전송
-            // 3. 관리자에게 에러 리포트 전송
-            // 4. 재시도 큐에 추가 (자동 재시도 옵션)
+            // model3dId로 Model3D 찾기
+            Model3D model3D = model3DRepository.findById(response.getModel3dId())
+                    .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + response.getModel3dId() + "을 찾을 수 없습니다."));
+
+            // 상태를 FAILED로 업데이트
+            model3D.updateStatus("FAILED");
+            
+            Model3D failedModel = model3DRepository.save(model3D);
             
             log.warn("⚠️ 실패 원인: {}", response.getMessage());
             log.warn("⚠️ 원본 이미지: {}", response.getOriginalImageUrl());
+            log.info("❌ 3D 모델 상태 업데이트 완료: model3dId={}, status={}", 
+                failedModel.getId(), failedModel.getStatus());
             
             // 실제 운영 환경에서는:
             // - 에러 유형에 따라 다른 처리 (이미지 품질 문제, 서버 오류 등)
             // - 실패 횟수 추적 및 임계값 설정
             // - 자동 환불 처리 (유료 서비스인 경우)
+            // - 회원에게 실패 알림 전송
             
         } catch (Exception e) {
-            log.error("❌ 실패 처리 중 추가 오류 발생: {}", e.getMessage(), e);
+            log.error("❌ 실패 처리 중 추가 오류 발생: model3dId={}, error={}", 
+                response.getModel3dId(), e.getMessage(), e);
         }
     }
 

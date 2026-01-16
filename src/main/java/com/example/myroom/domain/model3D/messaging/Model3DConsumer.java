@@ -54,8 +54,15 @@ public class Model3DConsumer {
                 log.info("✅ 3D 모델 생성 성공 - DB 저장 시작");
                 log.info("🖼️ 저장할 이미지 URL: {}", response.getOriginalImageUrl());
                 log.info("🎨 저장할 3D 모델 URL: {}", response.getModel3dUrl());
-                model3DService.saveGeneratedModel(response);
-                log.info("✅ DB 저장 완료");
+                log.info("📝 모델 ID: {}", response.getModel3dId());
+                
+                try {
+                    model3DService.saveGeneratedModel(response);
+                    log.info("✅ DB 저장 완료: model3dId={}", response.getModel3dId());
+                } catch (Exception e) {
+                    log.error("❌ DB 저장 실패: model3dId={}, error={}", 
+                        response.getModel3dId(), e.getMessage(), e);
+                }
                 
                 // WebSocket으로 클라이언트에게 실시간 알림 전송
                 log.info("📤 WebSocket 알림 발송 시작 - 회원 {}에게 전송", response.getMemberId());
@@ -69,7 +76,15 @@ public class Model3DConsumer {
                 log.error("❌ 3D 모델 생성 실패 - 회원 ID: {}, 에러: {}", 
                     response.getMemberId(), response.getMessage());
                 log.error("❌ 실패한 이미지 URL: {}", response.getOriginalImageUrl());
-                model3DService.handleGenerationFailure(response);
+                log.error("❌ 모델 ID: {}", response.getModel3dId());
+                
+                try {
+                    model3DService.handleGenerationFailure(response);
+                    log.info("✅ DB 상태 업데이트 완료: model3dId={}, status=FAILED", response.getModel3dId());
+                } catch (Exception e) {
+                    log.error("❌ DB 상태 업데이트 실패: model3dId={}, error={}", 
+                        response.getModel3dId(), e.getMessage(), e);
+                }
                 
                 // 실패 시에도 WebSocket으로 알림 전송
                 log.info("📤 WebSocket 실패 알림 발송 시작 - 회원 {}에게 전송", response.getMemberId());

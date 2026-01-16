@@ -15,6 +15,9 @@ import lombok.NoArgsConstructor;
 public class Model3DUploadMessage {
     private String imageUrl;
     private Long memberId;
+    private Long model3dId;
+    private String furnitureType;
+    private Boolean isShared;
     private long timestamp;
 }
 

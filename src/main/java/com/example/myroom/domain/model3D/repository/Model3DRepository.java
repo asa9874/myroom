@@ -16,4 +16,6 @@ public interface Model3DRepository extends JpaRepository<Model3D, Long> {
     Page<Model3D> findByIsSharedTrueAndNameContaining(String name, Pageable pageable);
 
     List<Model3D> findByIsVectorDbTrainedFalse();
+    
+    List<Model3D> findByCreatorIdAndStatus(Long creatorId, String status);
 }

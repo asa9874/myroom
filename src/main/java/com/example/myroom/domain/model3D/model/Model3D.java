@@ -26,9 +26,11 @@ public class Model3D {
     private String description;
     private String thumbnailUrl;
     private Boolean isVectorDbTrained = false;
+    private String furnitureType;
+    private String status = "PROCESSING";
 
     @Builder
-    public Model3D(String name, LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl, Boolean isVectorDbTrained) {
+    public Model3D(String name, LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl, Boolean isVectorDbTrained, String furnitureType) {
         this.name = name;
         this.createdAt = createdAt;
         this.link = link;
@@ -37,6 +39,7 @@ public class Model3D {
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
         this.isVectorDbTrained = isVectorDbTrained != null ? isVectorDbTrained : false;
+        this.furnitureType = furnitureType;
     }
 
     public void update(String name, Boolean isShared, String description, Boolean isVectorDbTrained) {
@@ -51,6 +54,24 @@ public class Model3D {
         }
         if (isVectorDbTrained != null) {
             this.isVectorDbTrained = isVectorDbTrained;
+        }
+    }
+
+    public void updateGeneratedModel(String link, LocalDateTime createdAt, Boolean isVectorDbTrained) {
+        if (link != null) {
+            this.link = link;
+        }
+        if (createdAt != null) {
+            this.createdAt = createdAt;
+        }
+        if (isVectorDbTrained != null) {
+            this.isVectorDbTrained = isVectorDbTrained;
+        }
+    }
+
+    public void updateStatus(String status) {
+        if (status != null && (status.equals("SUCCESS") || status.equals("FAILED"))) {
+            this.status = status;
         }
     }
 

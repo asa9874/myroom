@@ -1,5 +1,8 @@
 package com.example.myroom.domain.model3D.dto.message;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,23 +19,38 @@ import lombok.NoArgsConstructor;
 public class Model3DGenerationResponse {
     
     /**
+     * 3D 모델 ID
+     */
+    @JsonProperty("model_3d_id")
+    @JsonAlias({"modelId", "model_id", "id", "model3dId"})
+    private Long model3dId;
+    
+    /**
      * 요청한 회원 ID
      */
+    @JsonProperty("member_id")
+    @JsonAlias("memberId")
     private Long memberId;
     
     /**
      * 원본 이미지 URL (생성 요청 시 전송했던 이미지)
      */
+    @JsonProperty("original_image_url")
+    @JsonAlias("originalImageUrl")
     private String originalImageUrl;
     
     /**
      * 생성된 3D 모델 파일 URL (GLB, GLTF 등)
      */
+    @JsonProperty("model_3d_url")
+    @JsonAlias("model3dUrl")
     private String model3dUrl;
     
     /**
      * 썸네일 이미지 URL (선택사항)
      */
+    @JsonProperty("thumbnail_url")
+    @JsonAlias("thumbnailUrl")
     private String thumbnailUrl;
     
     /**
@@ -53,5 +71,7 @@ public class Model3DGenerationResponse {
     /**
      * 생성에 걸린 시간 (초 단위)
      */
+    @JsonProperty("processing_time_seconds")
+    @JsonAlias("processingTimeSeconds")
     private Integer processingTimeSeconds;
 }

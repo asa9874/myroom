@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
+import com.example.myroom.domain.model3D.dto.request.Model3DUploadRequestDto;
 import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
 import com.example.myroom.domain.model3D.service.Model3DService;
 import com.example.myroom.global.jwt.CustomUserDetails;
@@ -66,8 +67,13 @@ public class Model3DController implements Model3DApi {
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> uploadModel3DFile(
             @RequestPart(value = "image", required = true) MultipartFile imageFile,
+            @RequestParam(value = "furniture_type", required = true) String furnitureType,
+            @RequestParam(value = "name", required = true) String name,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "is_shared", required = false) Boolean isShared,
             @AuthenticationPrincipal CustomUserDetails member) {
-        String fileUrl = model3DService.uploadModel3DFile(imageFile, member.getId());
+        Model3DUploadRequestDto uploadRequestDto = new Model3DUploadRequestDto(furnitureType, name, description, isShared);
+        String fileUrl = model3DService.uploadModel3DFile(imageFile, uploadRequestDto, member.getId());
         return ResponseEntity.ok(fileUrl);
     }
 

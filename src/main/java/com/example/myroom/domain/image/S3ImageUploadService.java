@@ -34,16 +34,17 @@ public class S3ImageUploadService {
             }
 
             String fileName = System.currentTimeMillis() + "." + getFileExtension(originalFileName);
+            String key = "images/" + fileName;
 
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key(fileName)
+                .key(key)
                 .contentType(file.getContentType())
                 .build();
 
             s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
-            return "https://" + bucketName + ".s3.amazonaws.com/" + fileName;
+            return "https://" + bucketName + ".s3.amazonaws.com/" + key;
         } catch (IOException e) {
             log.error("File upload failed", e);
             throw new IOException("Image Upload Fail", e);

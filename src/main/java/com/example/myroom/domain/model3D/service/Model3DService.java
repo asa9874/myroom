@@ -128,12 +128,6 @@ public class Model3DService {
             log.info("✅ 3D 모델 DB 업데이트 성공: model3DId={}, status={}", 
                 updatedModel.getId(), updatedModel.getStatus());
             
-            // 추가 로직 예시:
-            // 1. 회원에게 푸시 알림 전송 (생성 완료 알림)
-            // 2. 썸네일 이미지 별도 처리
-            // 3. 통계 정보 업데이트 (생성 횟수 등)
-            // 4. 캐시 갱신
-            
         } catch (Exception e) {
             log.error("❌ 3D 모델 DB 업데이트 실패: model3dId={}, error={}", 
                 response.getModel3dId(), e.getMessage(), e);
@@ -160,11 +154,6 @@ public class Model3DService {
             log.info("❌ 3D 모델 상태 업데이트 완료: model3dId={}, status={}", 
                 failedModel.getId(), failedModel.getStatus());
             
-            // 실제 운영 환경에서는:
-            // - 에러 유형에 따라 다른 처리 (이미지 품질 문제, 서버 오류 등)
-            // - 실패 횟수 추적 및 임계값 설정
-            // - 자동 환불 처리 (유료 서비스인 경우)
-            // - 회원에게 실패 알림 전송
             
         } catch (Exception e) {
             log.error("❌ 실패 처리 중 추가 오류 발생: model3dId={}, error={}", 

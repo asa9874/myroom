@@ -42,3 +42,7 @@ application-docker.yml
 docker-compose.yml
 
 MQLog.txt
+
+### Deploy ###
+deploy/.env
+*.pem

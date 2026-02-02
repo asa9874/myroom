@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/recommands")
 @RequiredArgsConstructor
-public class RecommandController {
+public class RecommandController implements RecommandApi {
     
     private final RecommandService recommandService;
     

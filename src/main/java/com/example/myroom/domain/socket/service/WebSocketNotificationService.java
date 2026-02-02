@@ -13,6 +13,25 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * WebSocket 알림 서비스
  * - STOMP 프로토콜을 사용하여 클라이언트에게 실시간 알림 전송
+ * 
+ * ### 📡 지원하는 알림 유형
+ * 1. **3D 모델 생성 알림**
+ *    - 개인 알림: `/topic/model3d/{memberId}`
+ *    - 전체 브로드캐스트: `/topic/model3d/all`
+ *    - 메시지 타입: Model3DNotificationMessage
+ * 
+ * 2. **가구 추천 결과 알림**
+ *    - 개인 알림: `/topic/recommand/{memberId}`
+ *    - 메시지 타입: RecommandResponseMessage
+ * 
+ * 3. **커스텀 알림**
+ *    - 개인 알림: `/topic/notifications/{memberId}`
+ *    - 메시지 타입: Model3DNotificationMessage
+ * 
+ * ### 🔄 메시지 전송 방식
+ * - **개인 알림**: 특정 사용자만 수신
+ * - **브로드캐스트**: 연결된 모든 사용자가 수신
+ * - **자동 변환**: RabbitMQ 응답을 WebSocket 메시지로 변환
  */
 @Slf4j
 @Service

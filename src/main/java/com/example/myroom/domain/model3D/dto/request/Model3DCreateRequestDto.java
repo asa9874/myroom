@@ -8,21 +8,44 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.NotEmpty;
 
+@Schema(description = "3D 모델 생성 요청 DTO")
 @JsonNaming(SnakeCaseStrategy.class)
 public record Model3DCreateRequestDto(
-        @Schema(description = "3D 모델 이름", requiredMode = RequiredMode.REQUIRED)
+        @Schema(
+            description = "3D 모델 이름", 
+            requiredMode = RequiredMode.REQUIRED,
+            example = "모던 의자",
+            minLength = 1,
+            maxLength = 100
+        )
         @NotEmpty(message = "이름은 비어 있을 수 없습니다.")
         String name,
         
-        @Schema(description = "3D 모델 링크", requiredMode = RequiredMode.REQUIRED)
+        @Schema(
+            description = "3D 모델 파일 링크 (S3 URL 등)", 
+            requiredMode = RequiredMode.REQUIRED,
+            example = "https://s3.amazonaws.com/myroom-bucket/models/chair.glb",
+            minLength = 1,
+            maxLength = 500
+        )
         @NotEmpty(message = "링크는 비어 있을 수 없습니다.")
         String link,
         
-        @Schema(description = "공유 여부", requiredMode = RequiredMode.NOT_REQUIRED)
+        @Schema(
+            description = "다른 사용자에게 공유 여부 (true: 공개, false: 비공개)", 
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "false",
+            defaultValue = "false"
+        )
         @JsonProperty("is_shared")
         Boolean isShared,
         
-        @Schema(description = "모델 설명", requiredMode = RequiredMode.NOT_REQUIRED)
+        @Schema(
+            description = "3D 모델에 대한 상세 설명", 
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "모던 스타일의 회색 의자입니다. 사무실용으로 적합합니다.",
+            maxLength = 1000
+        )
         String description
 ) {
     

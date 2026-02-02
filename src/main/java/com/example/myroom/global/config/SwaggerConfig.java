@@ -18,13 +18,15 @@ public class SwaggerConfig {
                         .title("내방꾸미기(가제) API 문서")
                         .version("1.0")
                         .description("내방꾸미기(가제) API 문서"))
-                .addSecurityItem(new SecurityRequirement().addList("BearerAuth")) // JWT 인증 설정
+                .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication")) // JWT 인증 설정
                 .components(new io.swagger.v3.oas.models.Components()
-                        .addSecuritySchemes("BearerAuth",
+                        .addSecuritySchemes("Bearer Authentication",
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
-                                        .bearerFormat("JWT")));
+                                        .bearerFormat("JWT")
+                                        .description("JWT 토큰을 입력하세요 (Bearer 접두어 없이)")
+                                        .name("Authorization")));
     }
 
 }

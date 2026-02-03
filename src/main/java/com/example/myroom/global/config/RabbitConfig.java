@@ -34,6 +34,12 @@ public class RabbitConfig {
     // Routing Key: VectorDB 메타데이터 업데이트용 라우팅 키
     public static final String MODEL3D_METADATA_UPDATE_ROUTING_KEY = "model3d.metadata.update";
 
+    // ===== VectorDB 삭제 설정 =====
+    // Queue: VectorDB에서 3D 모델 삭제 요청을 받는 큐
+    public static final String MODEL3D_DELETE_QUEUE = "model3d.delete.queue";
+    // Routing Key: VectorDB 삭제용 라우팅 키
+    public static final String MODEL3D_DELETE_ROUTING_KEY = "model3d.delete";
+
     // ===== 추천 기능 관련 설정 =====
     // Exchange: 추천 요청 메시지를 배정하는 교환기
     public static final String RECOMMAND_EXCHANGE = "recommand.exchange";
@@ -140,6 +146,32 @@ public class RabbitConfig {
         return BindingBuilder.bind(model3dMetadataUpdateQueue)
                 .to(model3dExchange)
                 .with(MODEL3D_METADATA_UPDATE_ROUTING_KEY);
+    }
+
+    // ===== VectorDB 삭제 Bean 설정 =====
+
+    /**
+     * VectorDB 삭제 Queue 생성
+     * - 3D 모델이 삭제되면 VectorDB에서도 해당 데이터를 삭제해야 합니다.
+     * - Flask 서버가 이 큐를 구독하여 삭제를 처리합니다.
+     */
+    @Bean
+    public Queue model3dDeleteQueue() {
+        return new Queue(MODEL3D_DELETE_QUEUE, true);
+    }
+
+    /**
+     * VectorDB 삭제 Binding 설정
+     * - "model3dExchange"로 들어온 메시지 중에서
+     * - 라우팅 키가 "model3d.delete"인 메시지는
+     * - "model3dDeleteQueue"로 전달합니다.
+     */
+    @Bean
+    public Binding model3dDeleteBinding(@Qualifier("model3dDeleteQueue") Queue model3dDeleteQueue, 
+                                         @Qualifier("model3dExchange") TopicExchange model3dExchange) {
+        return BindingBuilder.bind(model3dDeleteQueue)
+                .to(model3dExchange)
+                .with(MODEL3D_DELETE_ROUTING_KEY);
     }
 
     // ===== 추천 기능 관련 Bean 설정 =====

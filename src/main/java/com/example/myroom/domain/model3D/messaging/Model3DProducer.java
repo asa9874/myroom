@@ -1,8 +1,11 @@
 package com.example.myroom.domain.model3D.messaging;
 
+import java.util.List;
+
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
+import com.example.myroom.domain.model3D.dto.message.Model3DDeleteMessage;
 import com.example.myroom.domain.model3D.dto.message.Model3DMetadataUpdateMessage;
 import com.example.myroom.domain.model3D.dto.message.Model3DUploadMessage;
 import com.example.myroom.global.config.RabbitConfig;
@@ -63,6 +66,26 @@ public class Model3DProducer {
         rabbitTemplate.convertAndSend(
                 RabbitConfig.MODEL3D_EXCHANGE,
                 RabbitConfig.MODEL3D_METADATA_UPDATE_ROUTING_KEY,
+                message
+        );
+    }
+
+    /**
+     * VectorDB 삭제 메시지 발송
+     * - 3D 모델이 삭제되면 VectorDB에서도 해당 데이터를 삭제해야 합니다.
+     */
+    public void sendDeleteMessage(List<Long> model3dIds, Long memberId) {
+        Model3DDeleteMessage message = Model3DDeleteMessage.builder()
+                .model3dIds(model3dIds)
+                .memberId(memberId)
+                .timestamp(System.currentTimeMillis())
+                .build();
+
+        log.info("🗑️ VectorDB 삭제 메시지 발송: model3dIds={}, memberId={}", model3dIds, memberId);
+
+        rabbitTemplate.convertAndSend(
+                RabbitConfig.MODEL3D_EXCHANGE,
+                RabbitConfig.MODEL3D_DELETE_ROUTING_KEY,
                 message
         );
     }

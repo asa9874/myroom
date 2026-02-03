@@ -79,6 +79,12 @@ public class Model3DService {
             throw new IllegalArgumentException("3D 모델을 삭제할 권한이 없습니다.");
         }
 
+        // VectorDB에 학습된 모델인 경우 삭제 메시지 발송
+        if (model3D.getIsVectorDbTrained()) {
+            model3DProducer.sendDeleteMessage(List.of(model3dId), memberId);
+            log.info("🗑️ VectorDB 삭제 요청: model3dId={}", model3dId);
+        }
+
         model3DRepository.deleteById(model3dId);
     }
 
@@ -217,6 +223,17 @@ public class Model3DService {
         
         if (userModel3Ds.isEmpty()) {
             throw new IllegalArgumentException("삭제할 3D 모델이 없습니다.");
+        }
+
+        // VectorDB에 학습된 모델들의 ID 추출하여 삭제 메시지 발송
+        List<Long> trainedModel3dIds = userModel3Ds.stream()
+                .filter(Model3D::getIsVectorDbTrained)
+                .map(Model3D::getId)
+                .toList();
+        
+        if (!trainedModel3dIds.isEmpty()) {
+            model3DProducer.sendDeleteMessage(trainedModel3dIds, memberId);
+            log.info("🗑️ VectorDB 일괄 삭제 요청: model3dIds={}", trainedModel3dIds);
         }
         
         model3DRepository.deleteAll(userModel3Ds);

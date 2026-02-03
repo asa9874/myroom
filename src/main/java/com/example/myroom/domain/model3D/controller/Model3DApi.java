@@ -393,6 +393,77 @@ public interface Model3DApi {
         value = {
             @ApiResponse(
                 responseCode = "200", 
+                description = "간편 파일 업로드 및 3D 모델 생성 요청 성공 - 처리 중 상태로 생성됨",
+                content = @Content(
+                    mediaType = "text/plain",
+                    examples = @ExampleObject(
+                        name = "간편 업로드 성공 응답",
+                        value = "3D 모델 생성이 요청되었습니다. 모델 ID: 1"
+                    )
+                )
+            ),
+            @ApiResponse(
+                responseCode = "400", 
+                description = "잘못된 요청 - 파일 형식 오류", 
+                content = @Content(schema = @Schema(hidden = true))
+            )
+        }
+    )
+    @Operation(
+        summary = "간편 이미지 업로드로 3D 모델 생성", 
+        description = """
+            이미지 파일만으로 간단하게 AI 기반 3D 모델 생성을 요청합니다.
+            
+            **인증 필요:** Bearer Token
+            
+            **지원 이미지 형식:** JPG, JPEG, PNG
+            
+            **자동 설정값:**
+            - **가구 유형:** `temp` (임시)
+            - **모델 이름:** `Temp_{타임스탬프}` (자동 생성)
+            - **설명:** "임시 업로드된 3D 모델"
+            - **공유 여부:** `false` (비공개)
+            
+            **사용 용도:**
+            - 빠른 테스트 업로드
+            - 임시 3D 모델 생성
+            - 상세 정보 입력 없이 즉시 생성
+            
+            **처리 과정:**
+            1. 이미지 업로드 → S3 저장
+            2. 기본값으로 3D 모델 생성 요청 (PROCESSING 상태)
+            3. AI 서버에서 3D 모델 생성
+            4. 완료 시 WebSocket으로 알림 (SUCCESS/FAILED 상태)
+            
+            ### 📡 WebSocket 알림 정보
+            
+            **WebSocket 연결:** `/ws/notifications` (STOMP 프로토콜)  
+            **구독 토픽:** `/topic/model3d/{userId}` (개인 알림)  
+            **브로드캐스트 토픽:** `/topic/model3d/all` (전체 알림)
+            
+            **주의사항:**
+            - 모델 생성은 비동기로 처리됩니다.
+            - 생성 완료 알림은 WebSocket을 통해 받을 수 있습니다.
+            - 생성된 임시 모델은 나중에 수정할 수 있습니다.
+            - 처리 시간은 이미지 복잡도에 따라 30초~5분 소요될 수 있습니다.
+            """
+    )
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PostMapping(value = "/upload-simple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ResponseEntity<String> uploadSimpleModel3DFile(
+            @Parameter(
+                description = "3D 모델 생성에 사용할 가구 이미지 파일 (JPG, PNG 지원)",
+                required = true
+            )
+            @RequestPart(value = "image", required = true) MultipartFile imageFile,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails member
+    );
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200", 
                 description = "전체 3D 모델 조회 성공 (관리자 전용)",
                 content = @Content(
                     mediaType = "application/json",

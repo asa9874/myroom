@@ -55,6 +55,19 @@ public class Model3DService {
                 null);
 
         Model3D updatedModel3D = model3DRepository.save(model3D);
+        
+        // VectorDB에 학습된 모델인 경우에만 메타데이터 업데이트 메시지 발송
+        if (updatedModel3D.getIsVectorDbTrained()) {
+            model3DProducer.sendMetadataUpdateMessage(
+                    updatedModel3D.getId(),
+                    memberId,
+                    updatedModel3D.getName(),
+                    updatedModel3D.getDescription(),
+                    updatedModel3D.getIsShared()
+            );
+            log.info("📤 VectorDB 메타데이터 업데이트 요청: model3dId={}", model3dId);
+        }
+        
         return Model3DResponseDto.from(updatedModel3D);
     }
 
@@ -72,8 +85,8 @@ public class Model3DService {
     public String uploadModel3DFile(MultipartFile file, Model3DUploadRequestDto uploadRequestDto, Long memberId) {
         String imageUrl;
         try { 
-            //imageUrl = imageUploadService.uploadImage(file); //로컬저장
-            imageUrl = s3ImageUploadService.uploadImage(file); // S3저장
+            imageUrl = imageUploadService.uploadImage(file); //로컬저장
+            //imageUrl = s3ImageUploadService.uploadImage(file); // S3저장
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }

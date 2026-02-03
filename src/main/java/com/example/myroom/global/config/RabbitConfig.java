@@ -28,6 +28,12 @@ public class RabbitConfig {
     // Routing Key: 3D 모델 생성 완료 메시지용 라우팅 키
     public static final String MODEL3D_RESPONSE_ROUTING_KEY = "model3d.response";
 
+    // ===== VectorDB 메타데이터 업데이트 설정 =====
+    // Queue: VectorDB 메타데이터 업데이트 요청을 받는 큐
+    public static final String MODEL3D_METADATA_UPDATE_QUEUE = "model3d.metadata.update.queue";
+    // Routing Key: VectorDB 메타데이터 업데이트용 라우팅 키
+    public static final String MODEL3D_METADATA_UPDATE_ROUTING_KEY = "model3d.metadata.update";
+
     // ===== 추천 기능 관련 설정 =====
     // Exchange: 추천 요청 메시지를 배정하는 교환기
     public static final String RECOMMAND_EXCHANGE = "recommand.exchange";
@@ -108,6 +114,32 @@ public class RabbitConfig {
         return BindingBuilder.bind(model3dResponseQueue)
                 .to(model3dExchange)
                 .with(MODEL3D_RESPONSE_ROUTING_KEY);
+    }
+
+    // ===== VectorDB 메타데이터 업데이트 Bean 설정 =====
+
+    /**
+     * VectorDB 메타데이터 업데이트 Queue 생성
+     * - 3D 모델 정보가 수정되면 VectorDB의 메타데이터도 함께 업데이트해야 합니다.
+     * - Flask 서버가 이 큐를 구독하여 메타데이터 업데이트를 처리합니다.
+     */
+    @Bean
+    public Queue model3dMetadataUpdateQueue() {
+        return new Queue(MODEL3D_METADATA_UPDATE_QUEUE, true);
+    }
+
+    /**
+     * VectorDB 메타데이터 업데이트 Binding 설정
+     * - "model3dExchange"로 들어온 메시지 중에서
+     * - 라우팅 키가 "model3d.metadata.update"인 메시지는
+     * - "model3dMetadataUpdateQueue"로 전달합니다.
+     */
+    @Bean
+    public Binding model3dMetadataUpdateBinding(@Qualifier("model3dMetadataUpdateQueue") Queue model3dMetadataUpdateQueue, 
+                                                 @Qualifier("model3dExchange") TopicExchange model3dExchange) {
+        return BindingBuilder.bind(model3dMetadataUpdateQueue)
+                .to(model3dExchange)
+                .with(MODEL3D_METADATA_UPDATE_ROUTING_KEY);
     }
 
     // ===== 추천 기능 관련 Bean 설정 =====

@@ -3,6 +3,7 @@ package com.example.myroom.domain.model3D.messaging;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
+import com.example.myroom.domain.model3D.dto.message.Model3DMetadataUpdateMessage;
 import com.example.myroom.domain.model3D.dto.message.Model3DUploadMessage;
 import com.example.myroom.global.config.RabbitConfig;
 
@@ -39,6 +40,30 @@ public class Model3DProducer {
                 RabbitConfig.MODEL3D_EXCHANGE, // 어느 교환기(우체국)로 보낼지
                 RabbitConfig.MODEL3D_ROUTING_KEY, // 어떤 주소(라우팅 키)로 보낼지
                 message // 보낼 내용(메시지 객체)
+        );
+    }
+
+    /**
+     * VectorDB 메타데이터 업데이트 메시지 발송
+     * - 3D 모델 정보가 수정되면 VectorDB의 메타데이터도 함께 업데이트해야 합니다.
+     */
+    public void sendMetadataUpdateMessage(Long model3dId, Long memberId, String name, String description, Boolean isShared) {
+        Model3DMetadataUpdateMessage message = Model3DMetadataUpdateMessage.builder()
+                .model3dId(model3dId)
+                .memberId(memberId)
+                .name(name)
+                .description(description)
+                .isShared(isShared)
+                .timestamp(System.currentTimeMillis())
+                .build();
+
+        log.info("📤 VectorDB 메타데이터 업데이트 메시지 발송: model3dId={}, memberId={}, name={}, description={}, isShared={}", 
+            model3dId, memberId, name, description, isShared);
+
+        rabbitTemplate.convertAndSend(
+                RabbitConfig.MODEL3D_EXCHANGE,
+                RabbitConfig.MODEL3D_METADATA_UPDATE_ROUTING_KEY,
+                message
         );
     }
 }

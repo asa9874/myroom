@@ -48,4 +48,12 @@ public class SwaggerGroupConfig {
                 .build();
     }
 
+    @Bean
+    public GroupedOpenApi testDataApi() {
+        return GroupedOpenApi.builder()
+                .group("🧪 테스트 데이터")
+                .pathsToMatch("/api/test-data/**")
+                .build();
+    }
+
 }

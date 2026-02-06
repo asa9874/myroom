@@ -27,6 +27,13 @@ public class AuthController implements AuthApi {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/register-admin")
+    public ResponseEntity<Void> registerAdmin(
+            @Valid @RequestBody AuthRegisterRequestDto adminRequestDto) {
+        authService.registerAdmin(adminRequestDto);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/login")
     public ResponseEntity<AuthLoginResponseDto> login(
             @Valid @RequestBody AuthLoginRequestDto requestDto) {

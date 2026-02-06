@@ -41,4 +41,8 @@ public class Member {
         this.name = name;
         this.email = email;
     }
+
+    public void updateRole(Role role) {
+        this.role = role;
+    }
 }

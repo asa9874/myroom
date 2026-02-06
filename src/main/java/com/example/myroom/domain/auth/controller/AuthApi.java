@@ -84,6 +84,67 @@ public interface AuthApi {
         value = {
             @ApiResponse(
                 responseCode = "200", 
+                description = "관리자 계정 생성 성공",
+                content = @Content(schema = @Schema(hidden = true))
+            ),
+            @ApiResponse(
+                responseCode = "400", 
+                description = "잘못된 요청 - 필수 필드 누락 또는 유효성 검사 실패", 
+                content = @Content(
+                    schema = @Schema(hidden = true),
+                    examples = @ExampleObject(
+                        name = "유효성 검사 실패",
+                        value = "{\"error\": \"잘못된 인자 오류\", \"message\": \"이메일은 비어 있을 수 없습니다.\"}"
+                    )
+                )
+            ),
+            @ApiResponse(
+                responseCode = "409", 
+                description = "이미 존재하는 이메일", 
+                content = @Content(
+                    schema = @Schema(hidden = true),
+                    examples = @ExampleObject(
+                        name = "이메일 중복",
+                        value = "{\"error\": \"잘못된 인자 오류\", \"message\": \"이미 존재하는 이메일입니다: admin@example.com\"}"
+                    )
+                )
+            )
+        }
+    )
+    @Operation(
+        summary = "관리자 계정 생성", 
+        description = """
+            새로운 관리자 계정을 생성합니다.
+            
+            **요청 본문 예시:**
+            ```json
+            {
+                "name": "관리자",
+                "email": "admin@example.com",
+                "password": "admin123!@#"
+            }
+            ```
+            
+            **주의사항:**
+            - ⚠️ 개발/테스트 환경에서만 사용하세요!
+            - 이메일은 중복될 수 없습니다.
+            - 생성된 계정은 ADMIN 역할로 설정됩니다.
+            - 비밀번호는 8자 이상을 권장합니다.
+            """
+    )
+    @PostMapping("/register-admin")
+    ResponseEntity<Void> registerAdmin(
+            @Parameter(
+                description = "관리자 계정 생성 요청 정보",
+                required = true
+            )
+            @Valid @RequestBody AuthRegisterRequestDto adminRequestDto
+    );
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200", 
                 description = "로그인 성공 - JWT 토큰 반환",
                 content = @Content(
                     mediaType = "application/json",

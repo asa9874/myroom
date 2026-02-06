@@ -7,6 +7,7 @@ import com.example.myroom.domain.auth.dto.request.AuthLoginRequestDto;
 import com.example.myroom.domain.auth.dto.request.AuthRegisterRequestDto;
 import com.example.myroom.domain.auth.dto.response.AuthLoginResponseDto;
 import com.example.myroom.domain.member.model.Member;
+import com.example.myroom.domain.member.model.Role;
 import com.example.myroom.domain.member.repository.MemberRepository;
 import com.example.myroom.global.jwt.JwtTokenProvider;
 
@@ -31,6 +32,21 @@ public class AuthService {
                 .password(passwordEncoder.encode(memberRequestDto.password()))
                 .build();
         memberRepository.save(member);
+    }
+
+    public void registerAdmin(AuthRegisterRequestDto adminRequestDto) {
+        if (memberRepository.existsByEmail(adminRequestDto.email())) {
+            throw new IllegalArgumentException("이미 존재하는 이메일입니다: " + adminRequestDto.email());
+        }
+
+        Member admin = Member.builder()
+                .name(adminRequestDto.name())
+                .email(adminRequestDto.email())
+                .password(passwordEncoder.encode(adminRequestDto.password()))
+                .build();
+        
+        admin.updateRole(Role.ADMIN);
+        memberRepository.save(admin);
     }
 
     public AuthLoginResponseDto login(AuthLoginRequestDto requestDto) {

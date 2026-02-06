@@ -86,7 +86,7 @@ public class PostController implements PostApi {
     @GetMapping("/category/{category}")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<Page<PostResponseDto>> getPostsByCategory(
-            @PathVariable Category category,
+            @PathVariable(value = "category") Category category,
             Pageable pageable,
             @AuthenticationPrincipal CustomUserDetails member) {
         Page<PostResponseDto> posts = postService.getPostsByCategory(category, pageable);
@@ -105,9 +105,9 @@ public class PostController implements PostApi {
     @GetMapping("/search")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<Page<PostResponseDto>> searchPosts(
-            @RequestParam String title,
-            @RequestParam(required = false) Category category,
-            @RequestParam(required = false, defaultValue = "false") boolean myPost,
+            @RequestParam(value = "title") String title,
+            @RequestParam(value = "category", required = false) Category category,
+            @RequestParam(value = "myPost", required = false, defaultValue = "false") boolean myPost,
             Pageable pageable,
             @AuthenticationPrincipal CustomUserDetails member) {
         Page<PostResponseDto> posts = postService.searchPosts(title, category, member.getId(), myPost, pageable);

@@ -33,6 +33,14 @@ public class SwaggerGroupConfig {
     }
 
     @Bean
+    public GroupedOpenApi postApi() {
+        return GroupedOpenApi.builder()
+                .group("게시글")
+                .pathsToMatch("/api/posts/**")
+                .build();
+    }
+
+    @Bean
     public GroupedOpenApi adminApi() {
         return GroupedOpenApi.builder()
                 .group("관리자")

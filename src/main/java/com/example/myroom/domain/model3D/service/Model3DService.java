@@ -13,6 +13,7 @@ import com.example.myroom.domain.image.ImageUploadService;
 import com.example.myroom.domain.image.S3ImageUploadService;
 import com.example.myroom.domain.model3D.dto.message.Model3DGenerationResponse;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
+import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestV2Dto;
 import com.example.myroom.domain.model3D.dto.request.Model3DUploadRequestDto;
 import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
 import com.example.myroom.domain.model3D.messaging.Model3DProducer;
@@ -52,6 +53,38 @@ public class Model3DService {
                 updateRequestDto.name(),
                 updateRequestDto.isShared(),
                 updateRequestDto.description(),
+                null);
+
+        Model3D updatedModel3D = model3DRepository.save(model3D);
+        
+        // VectorDB에 학습된 모델인 경우에만 메타데이터 업데이트 메시지 발송
+        if (updatedModel3D.getIsVectorDbTrained()) {
+            model3DProducer.sendMetadataUpdateMessage(
+                    updatedModel3D.getId(),
+                    memberId,
+                    updatedModel3D.getName(),
+                    updatedModel3D.getDescription(),
+                    updatedModel3D.getIsShared()
+            );
+            log.info("📤 VectorDB 메타데이터 업데이트 요청: model3dId={}", model3dId);
+        }
+        
+        return Model3DResponseDto.from(updatedModel3D);
+    }
+
+    public Model3DResponseDto updateModel3Dv2(Long model3dId, Model3DUpdateRequestV2Dto updateRequestDto, Long memberId) {
+        Model3D model3D = model3DRepository.findById(model3dId)
+                .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + model3dId + "을 찾을 수 없습니다."));
+
+        if (!isOwner(model3D.getCreatorId(), memberId)) {
+            throw new IllegalArgumentException("3D 모델을 수정할 권한이 없습니다.");
+        }
+
+        model3D.updateWithLink(
+                updateRequestDto.name(),
+                updateRequestDto.isShared(),
+                updateRequestDto.description(),
+                updateRequestDto.link(),
                 null);
 
         Model3D updatedModel3D = model3DRepository.save(model3D);

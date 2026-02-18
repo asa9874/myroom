@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.model3D.dto.request.Model3DCreateRequestDto;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
+import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestV2Dto;
 import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
 import com.example.myroom.global.jwt.CustomUserDetails;
 
@@ -177,6 +178,43 @@ public interface Model3DApi {
             @PathVariable(name = "model3dId") Long model3dId,
             @Parameter(description = "수정할 모델 정보", required = true)
             @Valid @RequestBody Model3DUpdateRequestDto updateRequestDto,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails member
+    );
+
+    @Operation(
+        summary = "3D 모델 정보 수정 v2",
+        description = """
+            자신이 생성한 3D 모델의 정보를 수정합니다. (link 필드 포함)
+            
+            **인증 필요:** Bearer Token
+            
+            **요청 본문 예시:**
+            ```json
+            {
+                "name": "모던 소파",
+                "is_shared": true,
+                "description": "편안한 3인용 소파입니다.",
+                "link": "https://example.com/model3d/sofa.glb"
+            }
+            ```
+            
+            **주의사항:**
+            - 자신이 생성한 모델만 수정 가능합니다.
+            - null로 전달된 필드는 변경되지 않습니다.
+            """
+    )
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PutMapping("/v2/{model3dId}")
+    ResponseEntity<Model3DResponseDto> updateModel3Dv2(
+            @Parameter(
+                description = "수정할 3D 모델의 고유 ID",
+                required = true,
+                example = "1"
+            )
+            @PathVariable(name = "model3dId") Long model3dId,
+            @Parameter(description = "수정할 모델 정보 (link 포함)", required = true)
+            @Valid @RequestBody Model3DUpdateRequestV2Dto updateRequestDto,
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails member
     );

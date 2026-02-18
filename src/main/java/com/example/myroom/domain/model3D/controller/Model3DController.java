@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
+import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestV2Dto;
 import com.example.myroom.domain.model3D.dto.request.Model3DUploadRequestDto;
 import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
 import com.example.myroom.domain.model3D.service.Model3DService;
@@ -51,6 +52,16 @@ public class Model3DController implements Model3DApi {
             @Valid @RequestBody Model3DUpdateRequestDto updateRequestDto,
             @AuthenticationPrincipal CustomUserDetails member) {
         Model3DResponseDto responseDto = model3DService.updateModel3D(model3dId, updateRequestDto, member.getId());
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @PutMapping("/v2/{model3dId}")
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Model3DResponseDto> updateModel3Dv2(
+            @PathVariable(name = "model3dId") Long model3dId,
+            @Valid @RequestBody Model3DUpdateRequestV2Dto updateRequestDto,
+            @AuthenticationPrincipal CustomUserDetails member) {
+        Model3DResponseDto responseDto = model3DService.updateModel3Dv2(model3dId, updateRequestDto, member.getId());
         return ResponseEntity.ok(responseDto);
     }
 

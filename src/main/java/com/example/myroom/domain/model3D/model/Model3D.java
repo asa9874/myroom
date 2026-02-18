@@ -57,6 +57,24 @@ public class Model3D {
         }
     }
 
+    public void updateWithLink(String name, Boolean isShared, String description, String link, Boolean isVectorDbTrained) {
+        if (name != null) {
+            this.name = name;
+        }
+        if (isShared != null) {
+            this.isShared = isShared;
+        }
+        if (description != null) {
+            this.description = description;
+        }
+        if (link != null) {
+            this.link = link;
+        }
+        if (isVectorDbTrained != null) {
+            this.isVectorDbTrained = isVectorDbTrained;
+        }
+    }
+
     public void updateGeneratedModel(String link, LocalDateTime createdAt, Boolean isVectorDbTrained) {
         if (link != null) {
             this.link = link;

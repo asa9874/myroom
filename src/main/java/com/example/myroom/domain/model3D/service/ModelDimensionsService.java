@@ -67,6 +67,36 @@ public class ModelDimensionsService {
         return ModelDimensionsResponseDto.from(updatedModelDimensions);
     }
 
+    public ModelDimensionsResponseDto updateModelDimensionsByModel3dId(Long model3dId, ModelDimensionsUpdateRequestDto updateRequestDto) {
+        if (modelDimensionsRepository.existsByModel3DId(model3dId)) {
+            // 기존 치수 정보가 있으면 업데이트
+            ModelDimensions modelDimensions = modelDimensionsRepository.findByModel3DId(model3dId)
+                    .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + model3dId + "의 치수 정보를 찾을 수 없습니다."));
+            
+            modelDimensions.update(
+                    updateRequestDto.width(),
+                    updateRequestDto.length(),
+                    updateRequestDto.height());
+            
+            ModelDimensions updatedModelDimensions = modelDimensionsRepository.save(modelDimensions);
+            return ModelDimensionsResponseDto.from(updatedModelDimensions);
+        } else {
+            // 치수 정보가 없으면 새로 생성
+            Model3D model3D = model3DRepository.findById(model3dId)
+                    .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + model3dId + "을 찾을 수 없습니다."));
+            
+            ModelDimensions modelDimensions = ModelDimensions.builder()
+                    .model3D(model3D)
+                    .width(updateRequestDto.width())
+                    .length(updateRequestDto.length())
+                    .height(updateRequestDto.height())
+                    .build();
+            
+            ModelDimensions savedModelDimensions = modelDimensionsRepository.save(modelDimensions);
+            return ModelDimensionsResponseDto.from(savedModelDimensions);
+        }
+    }
+
     public void deleteModelDimensions(Long modelDimensionsId) {
         modelDimensionsRepository.findById(modelDimensionsId)
                 .orElseThrow(() -> new IllegalArgumentException("치수 정보 " + modelDimensionsId + "을 찾을 수 없습니다."));

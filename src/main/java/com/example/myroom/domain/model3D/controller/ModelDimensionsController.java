@@ -55,13 +55,12 @@ public class ModelDimensionsController implements ModelDimensionsApi {
     public ResponseEntity<ModelDimensionsResponseDto> updateModelDimensions(
             @PathVariable(name = "model3dId") Long model3dId,
             @Valid @RequestBody ModelDimensionsUpdateRequestDto updateRequestDto) {
-        // model3dId로 조회하여 해당 치수 정보를 업데이트
-        ModelDimensionsResponseDto responseDto = modelDimensionsService.getModelDimensionsByModel3DId(model3dId);
-        ModelDimensionsResponseDto updatedResponseDto = modelDimensionsService.updateModelDimensions(
-                responseDto.id(),
+        // exists 체크 후 업데이트 또는 생성
+        ModelDimensionsResponseDto responseDto = modelDimensionsService.updateModelDimensionsByModel3dId(
+                model3dId,
                 updateRequestDto
         );
-        return ResponseEntity.ok(updatedResponseDto);
+        return ResponseEntity.ok(responseDto);
     }
 
     @DeleteMapping("")

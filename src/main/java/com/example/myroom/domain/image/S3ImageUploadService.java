@@ -1,7 +1,11 @@
 package com.example.myroom.domain.image;
 
-
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,6 +37,9 @@ public class S3ImageUploadService {
                 throw new IOException("Invalid file name");
             }
 
+            // 이미지 리사이징
+            byte[] resizedImageBytes = resizeImage(file, originalFileName);
+
             String fileName = System.currentTimeMillis() + "." + getFileExtension(originalFileName);
             String key = "images/" + fileName;
 
@@ -42,7 +49,7 @@ public class S3ImageUploadService {
                 .contentType(file.getContentType())
                 .build();
 
-            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(resizedImageBytes));
 
             return "https://" + bucketName + ".s3.amazonaws.com/" + key;
         } catch (IOException e) {
@@ -54,6 +61,28 @@ public class S3ImageUploadService {
     private String getFileExtension(String fileName) {
         int index = fileName.lastIndexOf('.');
         return index > 0 ? fileName.substring(index + 1) : "";
+    }
+    
+    private byte[] resizeImage(MultipartFile originalFile, String fileName) throws IOException {
+        BufferedImage originalImage = ImageIO.read(originalFile.getInputStream());
+        if (originalImage == null) {
+            throw new IOException("Invalid image file");
+        }
+        
+        // 512x512로 리사이징
+        BufferedImage resizedImage = new BufferedImage(512, 512, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = resizedImage.createGraphics();
+        g2d.drawImage(originalImage, 0, 0, 512, 512, null);
+        g2d.dispose();
+        
+        // BufferedImage를 byte array로 변환
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        String formatName = getFileExtension(fileName);
+        if (formatName.isEmpty()) {
+            formatName = "jpg";
+        }
+        ImageIO.write(resizedImage, formatName, baos);
+        return baos.toByteArray();
     }
 }
 

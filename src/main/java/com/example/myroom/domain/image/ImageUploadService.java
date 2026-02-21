@@ -1,6 +1,8 @@
 package com.example.myroom.domain.image;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -30,12 +32,12 @@ public class ImageUploadService {
                 throw new IOException("Invalid file name");
             }
             
-            // 이미지 리사이징
-            byte[] resizedImageBytes = resizeImage(file, originalFileName);
+            // 3D 모델링용 이미지 전처리 (종횡비 유지, 패딩 추가, PNG 투명 배경)
+            byte[] processedImageBytes = processImageFor3D(file, originalFileName);
             
-            String fileName = System.currentTimeMillis() + "." + getFileExtension(originalFileName);
+            String fileName = System.currentTimeMillis() + ".png"; // 항상 PNG로 저장
             String filePath = UPLOAD_DIR + fileName;
-            Files.write(Paths.get(filePath), resizedImageBytes);
+            Files.write(Paths.get(filePath), processedImageBytes);
             return "http://localhost:8080/images/" + fileName;
         } catch (IOException e) {
             log.error("File upload failed", e);
@@ -51,25 +53,52 @@ public class ImageUploadService {
         return "";
     }
     
-    private byte[] resizeImage(MultipartFile originalFile, String fileName) throws IOException {
+    private byte[] processImageFor3D(MultipartFile originalFile, String fileName) throws IOException {
         BufferedImage originalImage = ImageIO.read(originalFile.getInputStream());
         if (originalImage == null) {
             throw new IOException("Invalid image file");
         }
         
-        // 512x512로 리사이징
-        BufferedImage resizedImage = new BufferedImage(512, 512, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2d = resizedImage.createGraphics();
-        g2d.drawImage(originalImage, 0, 0, 512, 512, null);
+        int originalWidth = originalImage.getWidth();
+        int originalHeight = originalImage.getHeight();
+        
+        // 종횡비 계산
+        double aspectRatio = (double) originalWidth / originalHeight;
+        
+        // 512x512 캔버스 전체 영역 사용 (패딩 없음)
+        int canvasSize = 512;
+        
+        // 종횡비를 유지하면서 512x512에 맞는 크기 계산
+        int newWidth, newHeight;
+        if (aspectRatio > 1.0) { // 가로가 더 긴 경우
+            newWidth = canvasSize;
+            newHeight = (int) (canvasSize / aspectRatio);
+        } else { // 세로가 더 길거나 정사각형인 경우
+            newHeight = canvasSize;
+            newWidth = (int) (canvasSize * aspectRatio);
+        }
+        
+        // PNG 투명 배경 캔버스 생성
+        BufferedImage processedImage = new BufferedImage(canvasSize, canvasSize, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = processedImage.createGraphics();
+        
+        // 고품질 렌더링 설정
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        // 투명 배경 (기본값이므로 별도 설정 불필요)
+        
+        // 이미지를 중앙에 배치
+        int x = (canvasSize - newWidth) / 2;
+        int y = (canvasSize - newHeight) / 2;
+        
+        g2d.drawImage(originalImage, x, y, newWidth, newHeight, null);
         g2d.dispose();
         
-        // BufferedImage를 byte array로 변환
+        // PNG로 변환
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        String formatName = getFileExtension(fileName);
-        if (formatName.isEmpty()) {
-            formatName = "jpg";
-        }
-        ImageIO.write(resizedImage, formatName, baos);
+        ImageIO.write(processedImage, "png", baos);
         return baos.toByteArray();
     }
 }

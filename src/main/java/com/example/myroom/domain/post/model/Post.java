@@ -47,7 +47,6 @@ public class Post {
     private VisibilityScope visibilityScope = VisibilityScope.PUBLIC;
 
     private Long viewCount = 0L;  // 조회수 (기본값 0)
-    private Long likeCount = 0L;  // 좋아요수 (기본값 0)
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -66,9 +65,6 @@ public class Post {
     protected void onCreate() {
         if (viewCount == null) {
             viewCount = 0L;
-        }
-        if (likeCount == null) {
-            likeCount = 0L;
         }
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();

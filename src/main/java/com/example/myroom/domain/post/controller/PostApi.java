@@ -239,7 +239,7 @@ public interface PostApi {
     ResponseEntity<Page<PostResponseDto>> getPostsByCategory(
             @Parameter(description = "카테고리 (FURNITURE, INTERIOR, QUESTION, REVIEW, ETC)", 
                       required = true, example = "QUESTION")
-            @PathVariable Category category,
+            @PathVariable(name = "category") Category category,
             @Parameter(description = "페이지네이션 정보")
             Pageable pageable,
             @Parameter(hidden = true)

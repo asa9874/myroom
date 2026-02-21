@@ -36,7 +36,7 @@ public class SwaggerGroupConfig {
     public GroupedOpenApi postApi() {
         return GroupedOpenApi.builder()
                 .group("게시글")
-                .pathsToMatch("/api/posts/**")
+                .pathsToMatch("/api/posts/**", "/api/comments/**")
                 .build();
     }
 

@@ -1,7 +1,6 @@
 package com.example.myroom.domain.comment.dto.request;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
@@ -9,7 +8,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "댓글 생성 요청 DTO")
-@JsonNaming(SnakeCaseStrategy.class)
 public record CommentCreateRequestDto(
         @Schema(
             description = "게시글 ID",
@@ -17,6 +15,7 @@ public record CommentCreateRequestDto(
             example = "1"
         )
         @NotNull(message = "게시글 ID는 필수입니다.")
+        @JsonProperty("post_id")
         Long postId,
 
         @Schema(

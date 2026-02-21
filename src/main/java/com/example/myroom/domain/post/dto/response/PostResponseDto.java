@@ -105,7 +105,7 @@ public record PostResponseDto(
         )
         LocalDateTime updatedAt
 ) {
-    public static PostResponseDto from(Post post) {
+    public static PostResponseDto from(Post post, long likeCount) {
         return new PostResponseDto(
                 post.getId(),
                 post.getMember().getId(),
@@ -116,8 +116,8 @@ public record PostResponseDto(
                 post.getContent(),
                 post.getCategory(),
                 post.getVisibilityScope(),
-                post.getViewCount(),
-                post.getLikeCount(),
+                post.getViewCount() != null ? post.getViewCount() : 0L,
+                likeCount,
                 post.getCreatedAt(),
                 post.getUpdatedAt()
         );

@@ -111,7 +111,7 @@ public interface CommentApi {
     @GetMapping("/{commentId}")
     ResponseEntity<CommentResponseDto> getCommentById(
             @Parameter(description = "조회할 댓글의 고유 ID", required = true, example = "1")
-            @PathVariable Long commentId
+            @PathVariable(name = "commentId") Long commentId
     );
 
     @ApiResponses(
@@ -138,7 +138,7 @@ public interface CommentApi {
     @GetMapping("/post/{postId}")
     ResponseEntity<List<CommentResponseDto>> getCommentsByPostId(
             @Parameter(description = "댓글을 조회할 게시글의 고유 ID", required = true, example = "1")
-            @PathVariable Long postId
+            @PathVariable(name = "postId") Long postId
     );
 
     @ApiResponses(
@@ -165,7 +165,7 @@ public interface CommentApi {
     @GetMapping("/post/{postId}/page")
     ResponseEntity<Page<CommentResponseDto>> getCommentsByPostIdWithPagination(
             @Parameter(description = "댓글을 조회할 게시글의 고유 ID", required = true, example = "1")
-            @PathVariable Long postId,
+            @PathVariable(name = "postId") Long postId,
             @Parameter(hidden = true)
             Pageable pageable
     );
@@ -240,7 +240,7 @@ public interface CommentApi {
     @PutMapping("/{commentId}")
     ResponseEntity<CommentResponseDto> updateComment(
             @Parameter(description = "수정할 댓글의 고유 ID", required = true, example = "1")
-            @PathVariable Long commentId,
+            @PathVariable(name = "commentId") Long commentId,
             @Parameter(description = "댓글 수정 요청 데이터", required = true)
             @Valid @RequestBody CommentUpdateRequestDto requestDto,
             @Parameter(hidden = true)
@@ -279,7 +279,7 @@ public interface CommentApi {
     @DeleteMapping("/{commentId}")
     ResponseEntity<Void> deleteComment(
             @Parameter(description = "삭제할 댓글의 고유 ID", required = true, example = "1")
-            @PathVariable Long commentId,
+            @PathVariable(name = "commentId") Long commentId,
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails member
     );

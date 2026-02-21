@@ -12,6 +12,7 @@ import com.example.myroom.domain.model3D.repository.Model3DRepository;
 import com.example.myroom.domain.post.dto.request.PostCreateRequestDto;
 import com.example.myroom.domain.post.dto.request.PostUpdateRequestDto;
 import com.example.myroom.domain.post.dto.response.PostResponseDto;
+import com.example.myroom.domain.post.like.repository.PostLikeRepository;
 import com.example.myroom.domain.post.model.Category;
 import com.example.myroom.domain.post.model.Post;
 import com.example.myroom.domain.post.model.VisibilityScope;
@@ -29,6 +30,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
     private final Model3DRepository model3DRepository;
+    private final PostLikeRepository postLikeRepository;
 
     @Transactional
     public PostResponseDto createPost(PostCreateRequestDto requestDto, Long memberId) {
@@ -56,7 +58,7 @@ public class PostService {
                 .save(post);
         log.info("게시글이 생성되었습니다. ID: {}, 제목: {}", savedPost.getId(), savedPost.getTitle());
 
-        return PostResponseDto.from(savedPost);
+        return PostResponseDto.from(savedPost, 0L);
     }
 
     public PostResponseDto getPostById(Long postId, Long memberId) {
@@ -68,7 +70,8 @@ public class PostService {
             throw new IllegalArgumentException("비공개 게시글에 접근할 권한이 없습니다.");
         }
 
-        return PostResponseDto.from(post);
+        long likeCount = postLikeRepository.countByPostId(postId);
+        return PostResponseDto.from(post, likeCount);
     }
 
     @Transactional
@@ -97,7 +100,8 @@ public class PostService {
         Post updatedPost = postRepository.save(post);
         log.info("게시글이 수정되었습니다. ID: {}, 제목: {}", updatedPost.getId(), updatedPost.getTitle());
 
-        return PostResponseDto.from(updatedPost);
+        long likeCount = postLikeRepository.countByPostId(postId);
+        return PostResponseDto.from(updatedPost, likeCount);
     }
 
     @Transactional
@@ -115,18 +119,18 @@ public class PostService {
 
     public Page<PostResponseDto> getPublicPosts(Pageable pageable) {
         Page<Post> posts = postRepository.findByVisibilityScopeOrderByCreatedAtDesc(VisibilityScope.PUBLIC, pageable);
-        return posts.map(PostResponseDto::from);
+        return posts.map(post -> PostResponseDto.from(post, postLikeRepository.countByPostId(post.getId())));
     }
 
     public Page<PostResponseDto> getPostsByCategory(Category category, Pageable pageable) {
         Page<Post> posts = postRepository.findByVisibilityScopeAndCategoryOrderByCreatedAtDesc(
                 VisibilityScope.PUBLIC, category, pageable);
-        return posts.map(PostResponseDto::from);
+        return posts.map(post -> PostResponseDto.from(post, postLikeRepository.countByPostId(post.getId())));
     }
 
     public Page<PostResponseDto> getMyPosts(Long memberId, Pageable pageable) {
         Page<Post> posts = postRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable);
-        return posts.map(PostResponseDto::from);
+        return posts.map(post -> PostResponseDto.from(post, postLikeRepository.countByPostId(post.getId())));
     }
 
     public Page<PostResponseDto> searchPosts(String title, Category category, Long memberId, boolean isMyPost,
@@ -147,7 +151,7 @@ public class PostService {
             }
         }
 
-        return posts.map(PostResponseDto::from);
+        return posts.map(post -> PostResponseDto.from(post, postLikeRepository.countByPostId(post.getId())));
     }
 
     private boolean isOwner(Long modelCreatorId, Long memberId) {

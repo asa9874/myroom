@@ -44,21 +44,21 @@ public class CommentController implements CommentApi {
 
     @GetMapping("/{commentId}")
     public ResponseEntity<CommentResponseDto> getCommentById(
-            @PathVariable Long commentId) {
+            @PathVariable(name = "commentId") Long commentId) {
         CommentResponseDto responseDto = commentService.getCommentById(commentId);
         return ResponseEntity.ok(responseDto);
     }
 
     @GetMapping("/post/{postId}")
     public ResponseEntity<List<CommentResponseDto>> getCommentsByPostId(
-            @PathVariable Long postId) {
+            @PathVariable(name = "postId") Long postId) {
         List<CommentResponseDto> responseDtos = commentService.getCommentsByPostId(postId);
         return ResponseEntity.ok(responseDtos);
     }
 
     @GetMapping("/post/{postId}/page")
     public ResponseEntity<Page<CommentResponseDto>> getCommentsByPostIdWithPagination(
-            @PathVariable Long postId,
+            @PathVariable(name = "postId") Long postId,
             Pageable pageable) {
         Page<CommentResponseDto> responseDtos = commentService.getCommentsByPostId(postId, pageable);
         return ResponseEntity.ok(responseDtos);
@@ -76,7 +76,7 @@ public class CommentController implements CommentApi {
     @PutMapping("/{commentId}")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<CommentResponseDto> updateComment(
-            @PathVariable Long commentId,
+            @PathVariable(name = "commentId") Long commentId,
             @Valid @RequestBody CommentUpdateRequestDto requestDto,
             @AuthenticationPrincipal CustomUserDetails member) {
         CommentResponseDto responseDto = commentService.updateComment(commentId, requestDto, member.getId());
@@ -86,7 +86,7 @@ public class CommentController implements CommentApi {
     @DeleteMapping("/{commentId}")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteComment(
-            @PathVariable Long commentId,
+            @PathVariable(name = "commentId") Long commentId,
             @AuthenticationPrincipal CustomUserDetails member) {
         commentService.deleteComment(commentId, member.getId());
         return ResponseEntity.noContent().build();

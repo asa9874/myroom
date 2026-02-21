@@ -78,6 +78,20 @@ public record PostResponseDto(
         VisibilityScope visibilityScope,
 
         @Schema(
+            description = "조회수",
+            requiredMode = RequiredMode.REQUIRED,
+            example = "100"
+        )
+        Long viewCount,
+
+        @Schema(
+            description = "좋아요수",
+            requiredMode = RequiredMode.REQUIRED,
+            example = "15"
+        )
+        Long likeCount,
+
+        @Schema(
             description = "게시글 작성 일시",
             requiredMode = RequiredMode.REQUIRED,
             example = "2024-01-15T10:30:00"
@@ -102,6 +116,8 @@ public record PostResponseDto(
                 post.getContent(),
                 post.getCategory(),
                 post.getVisibilityScope(),
+                post.getViewCount(),
+                post.getLikeCount(),
                 post.getCreatedAt(),
                 post.getUpdatedAt()
         );

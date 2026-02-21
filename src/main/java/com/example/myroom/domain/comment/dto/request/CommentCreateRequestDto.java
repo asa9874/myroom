@@ -24,6 +24,14 @@ public record CommentCreateRequestDto(
             example = "좋은 정보 감사합니다!"
         )
         @NotEmpty(message = "댓글 내용은 비어 있을 수 없습니다.")
-        String content
+        String content,
+
+        @Schema(
+            description = "부모 댓글 ID (대댓글 작성 시 입력, 없으면 null)",
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "1"
+        )
+        @JsonProperty("parent_comment_id")
+        Long parentCommentId
 ) {
 }

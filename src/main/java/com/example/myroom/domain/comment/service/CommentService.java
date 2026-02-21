@@ -38,15 +38,27 @@ public class CommentService {
         Post post = postRepository.findById(requestDto.postId())
                 .orElseThrow(() -> new IllegalArgumentException("게시글 " + requestDto.postId() + "를 찾을 수 없습니다."));
 
+        Comment parentComment = null;
+        if (requestDto.parentCommentId() != null) {
+            parentComment = commentRepository.findById(requestDto.parentCommentId())
+                    .orElseThrow(() -> new IllegalArgumentException("부모 댓글 " + requestDto.parentCommentId() + "를 찾을 수 없습니다."));
+
+            if (!parentComment.getPost().getId().equals(post.getId())) {
+                throw new IllegalArgumentException("대댓글의 부모 댓글이 해당 게시글에 존재하지 않습니다.");
+            }
+        }
+
         Comment comment = Comment.builder()
                 .member(member)
                 .post(post)
                 .content(requestDto.content())
+                .parentComment(parentComment)
                 .build();
 
         Comment savedComment = commentRepository.save(comment);
-        log.info("댓글이 생성되었습니다. 댓글 ID: {}, 게시글 ID: {}, 작성자 ID: {}", 
-                savedComment.getId(), post.getId(), member.getId());
+        log.info("댓글이 생성되었습니다. 댓글 ID: {}, 게시글 ID: {}, 작성자 ID: {}, 부모 댓글 ID: {}", 
+                savedComment.getId(), post.getId(), member.getId(),
+                parentComment != null ? parentComment.getId() : null);
         
         return CommentResponseDto.from(savedComment);
     }

@@ -51,7 +51,8 @@ public interface CommentApi {
                             "post_id": 1,
                             "content": "좋은 정보 감사합니다!",
                             "created_at": "2024-01-15T10:30:00",
-                            "updated_at": "2024-01-15T10:30:00"
+                            "updated_at": "2024-01-15T10:30:00",
+                            "parent_comment_id": null
                         }
                         """
                     )
@@ -59,7 +60,7 @@ public interface CommentApi {
             ),
             @ApiResponse(
                 responseCode = "400", 
-                description = "잘못된 요청 (유효하지 않은 입력값)", 
+                description = "잘못된 요청 (유효하지 않은 입력값 또는 대댓글 규칙 위반)", 
                 content = @Content(schema = @Schema(hidden = true))
             ),
             @ApiResponse(
@@ -69,14 +70,14 @@ public interface CommentApi {
             ),
             @ApiResponse(
                 responseCode = "404", 
-                description = "게시글을 찾을 수 없음", 
+                description = "게시글 또는 부모 댓글을 찾을 수 없음", 
                 content = @Content(schema = @Schema(hidden = true))
             )
         }
     )
     @Operation(
         summary = "댓글 생성",
-        description = "게시글에 새로운 댓글을 생성합니다.",
+        description = "게시글에 새로운 댓글을 생성합니다. parent_comment_id를 전달하면 대댓글로 작성됩니다. 대댓글에도 대댓글 작성이 가능합니다.",
         security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @PostMapping

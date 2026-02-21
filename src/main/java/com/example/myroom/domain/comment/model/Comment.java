@@ -38,16 +38,22 @@ public class Comment {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Post post;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Comment parentComment;
+
     private String content;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @Builder
-    public Comment(Member member, Post post, String content) {
+    public Comment(Member member, Post post, String content, Comment parentComment) {
         this.member = member;
         this.post = post;
         this.content = content;
+        this.parentComment = parentComment;
     }
 
     @PrePersist

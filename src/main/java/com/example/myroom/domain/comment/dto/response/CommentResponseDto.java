@@ -59,7 +59,14 @@ public record CommentResponseDto(
             requiredMode = RequiredMode.REQUIRED,
             example = "2024-01-15T11:00:00"
         )
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+
+        @Schema(
+            description = "부모 댓글 ID (대댓글인 경우 해당 댓글 ID, 일반 댓글이면 null)",
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "1"
+        )
+        Long parentCommentId
 ) {
     public static CommentResponseDto from(Comment comment) {
         return new CommentResponseDto(
@@ -69,7 +76,8 @@ public record CommentResponseDto(
                 comment.getPost().getId(),
                 comment.getContent(),
                 comment.getCreatedAt(),
-                comment.getUpdatedAt()
+                comment.getUpdatedAt(),
+                comment.getParentComment() != null ? comment.getParentComment().getId() : null
         );
     }
 }

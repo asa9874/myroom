@@ -17,6 +17,19 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
            "WHERE c.post.id = :postId " +
            "ORDER BY c.createdAt ASC")
     List<Comment> findByPostIdOrderByCreatedAt(@Param("postId") Long postId);
+
+    @Query("SELECT c FROM Comment c " +
+           "JOIN FETCH c.member " +
+           "WHERE c.post.id = :postId " +
+           "AND c.parentComment IS NULL " +
+           "ORDER BY c.createdAt ASC")
+    List<Comment> findTopLevelCommentsByPostId(@Param("postId") Long postId);
+
+    @Query("SELECT c FROM Comment c " +
+           "JOIN FETCH c.member " +
+           "WHERE c.parentComment.id = :parentCommentId " +
+           "ORDER BY c.createdAt ASC")
+    List<Comment> findRepliesByParentCommentId(@Param("parentCommentId") Long parentCommentId);
     
     @Query("SELECT c FROM Comment c " +
            "JOIN FETCH c.member " +

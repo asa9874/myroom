@@ -48,17 +48,20 @@ public class Post {
 
     private Long viewCount = 0L;  // 조회수 (기본값 0)
 
+    private String imageUrl;  // 게시글 이미지 (nullable)
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @Builder
-    public Post(Member member, Model3D model3D, String title, String content, Category category, VisibilityScope visibilityScope) {
+    public Post(Member member, Model3D model3D, String title, String content, Category category, VisibilityScope visibilityScope, String imageUrl) {
         this.member = member;
         this.model3D = model3D;
         this.title = title;
         this.content = content;
         this.category = category;
         this.visibilityScope = visibilityScope != null ? visibilityScope : VisibilityScope.PUBLIC;
+        this.imageUrl = imageUrl;
     }
 
     @PrePersist
@@ -75,7 +78,7 @@ public class Post {
         updatedAt = LocalDateTime.now();
     }
 
-    public void update(String title, String content, Category category, VisibilityScope visibilityScope, Model3D model3D) {
+    public void update(String title, String content, Category category, VisibilityScope visibilityScope, Model3D model3D, String imageUrl) {
         if (title != null) {
             this.title = title;
         }
@@ -90,6 +93,9 @@ public class Post {
         }
         if (model3D != null) {
             this.model3D = model3D;
+        }
+        if (imageUrl != null) {
+            this.imageUrl = imageUrl;
         }
     }
 

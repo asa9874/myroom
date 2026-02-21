@@ -2,6 +2,7 @@ package com.example.myroom.domain.post.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -9,13 +10,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.example.myroom.domain.post.dto.request.PostCreateRequestDto;
-import com.example.myroom.domain.post.dto.request.PostUpdateRequestDto;
 import com.example.myroom.domain.post.dto.response.PostResponseDto;
 import com.example.myroom.domain.post.model.Category;
+import com.example.myroom.domain.post.model.VisibilityScope;
 import com.example.myroom.global.jwt.CustomUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +28,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 
 @Tag(name = "📝 게시글", description = "게시글 관리 및 조회 API - 게시글의 생성, 조회, 수정, 삭제 및 검색 기능을 제공합니다.")
 public interface PostApi {
@@ -82,10 +82,20 @@ public interface PostApi {
         description = "새로운 게시글을 생성합니다.",
         security = @SecurityRequirement(name = "Bearer Authentication")
     )
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<PostResponseDto> createPost(
-            @Parameter(description = "게시글 생성 요청 데이터", required = true)
-            @Valid @RequestBody PostCreateRequestDto requestDto,
+            @Parameter(description = "게시글 이미지 파일 (optional)")
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
+            @Parameter(description = "게시글 제목", required = true, example = "모던한 의자 추천")
+            @RequestParam(value = "title") String title,
+            @Parameter(description = "게시글 내용", required = true, example = "거실에 어울릴 의자")
+            @RequestParam(value = "content") String content,
+            @Parameter(description = "카테고리 (FURNITURE, INTERIOR, QUESTION, REVIEW, ETC)", required = true, example = "QUESTION")
+            @RequestParam(value = "category") Category category,
+            @Parameter(description = "공개 범위 (PUBLIC, PRIVATE)", example = "PUBLIC")
+            @RequestParam(value = "visibility_scope", required = false) VisibilityScope visibilityScope,
+            @Parameter(description = "3D 모델 ID", required = true, example = "1")
+            @RequestParam(value = "model3d_id") Long model3dId,
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails member
     );
@@ -152,12 +162,22 @@ public interface PostApi {
         description = "게시글 정보를 수정합니다. 작성자만 수정할 수 있습니다.",
         security = @SecurityRequirement(name = "Bearer Authentication")
     )
-    @PutMapping("/{postId}")
+    @PutMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<PostResponseDto> updatePost(
             @Parameter(description = "수정할 게시글 ID", required = true, example = "1")
             @PathVariable(name = "postId") Long postId,
-            @Parameter(description = "게시글 수정 요청 데이터", required = true)
-            @Valid @RequestBody PostUpdateRequestDto requestDto,
+            @Parameter(description = "게시글 이미지 파일 (optional, 없으면 기존 유지)")
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
+            @Parameter(description = "게시글 제목")
+            @RequestParam(value = "title", required = false) String title,
+            @Parameter(description = "게시글 내용")
+            @RequestParam(value = "content", required = false) String content,
+            @Parameter(description = "카테고리")
+            @RequestParam(value = "category", required = false) Category category,
+            @Parameter(description = "공개 범위")
+            @RequestParam(value = "visibility_scope", required = false) VisibilityScope visibilityScope,
+            @Parameter(description = "3D 모델 ID")
+            @RequestParam(value = "model3d_id", required = false) Long model3dId,
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails member
     );

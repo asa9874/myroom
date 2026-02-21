@@ -3,6 +3,7 @@ package com.example.myroom.domain.post.controller;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,19 +12,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.post.dto.request.PostCreateRequestDto;
 import com.example.myroom.domain.post.dto.request.PostUpdateRequestDto;
 import com.example.myroom.domain.post.dto.response.PostResponseDto;
 import com.example.myroom.domain.post.model.Category;
+import com.example.myroom.domain.post.model.VisibilityScope;
 import com.example.myroom.domain.post.service.PostService;
 import com.example.myroom.global.jwt.CustomUserDetails;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -33,16 +35,18 @@ public class PostController implements PostApi {
 
     private final PostService postService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<PostResponseDto> createPost(
-            @Valid @RequestBody PostCreateRequestDto requestDto,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
+            @RequestParam(value = "title") String title,
+            @RequestParam(value = "content") String content,
+            @RequestParam(value = "category") Category category,
+            @RequestParam(value = "visibility_scope", required = false) VisibilityScope visibilityScope,
+            @RequestParam(value = "model3d_id") Long model3dId,
             @AuthenticationPrincipal CustomUserDetails member) {
-        System.out.println("Creating post for member ID: " + member.getId());
-        System.out.println("Model3D ID: " + requestDto.model3dId());
-        System.out.println("Title: " + requestDto.title());
-        PostResponseDto responseDto = postService.createPost(requestDto, member.getId());
-        System.out.println("Created post with ID: " + responseDto.id());
+        PostCreateRequestDto requestDto = new PostCreateRequestDto(title, content, category, visibilityScope, model3dId);
+        PostResponseDto responseDto = postService.createPost(requestDto, member.getId(), imageFile);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
@@ -55,13 +59,19 @@ public class PostController implements PostApi {
         return ResponseEntity.ok(responseDto);
     }
 
-    @PutMapping("/{postId}")
+    @PutMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<PostResponseDto> updatePost(
             @PathVariable(name = "postId") Long postId,
-            @Valid @RequestBody PostUpdateRequestDto requestDto,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "content", required = false) String content,
+            @RequestParam(value = "category", required = false) Category category,
+            @RequestParam(value = "visibility_scope", required = false) VisibilityScope visibilityScope,
+            @RequestParam(value = "model3d_id", required = false) Long model3dId,
             @AuthenticationPrincipal CustomUserDetails member) {
-        PostResponseDto responseDto = postService.updatePost(postId, requestDto, member.getId());
+        PostUpdateRequestDto requestDto = new PostUpdateRequestDto(title, content, category, visibilityScope, model3dId);
+        PostResponseDto responseDto = postService.updatePost(postId, requestDto, member.getId(), imageFile);
         return ResponseEntity.ok(responseDto);
     }
 

@@ -50,6 +50,13 @@ public record PostResponseDto(
         String model3dName,
 
         @Schema(
+            description = "게시글 이미지 URL",
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "https://bucket.s3.amazonaws.com/images/photo.png"
+        )
+        String imageUrl,
+
+        @Schema(
             description = "게시글 제목",
             requiredMode = RequiredMode.REQUIRED,
             example = "모던한 의자 추천해주세요"
@@ -112,6 +119,7 @@ public record PostResponseDto(
                 post.getMember().getName(),
                 post.getModel3D() != null ? post.getModel3D().getId() : null,
                 post.getModel3D() != null ? post.getModel3D().getName() : null,
+                post.getImageUrl(),
                 post.getTitle(),
                 post.getContent(),
                 post.getCategory(),

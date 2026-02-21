@@ -61,6 +61,7 @@ public class PostService {
         return PostResponseDto.from(savedPost, 0L);
     }
 
+    @Transactional
     public PostResponseDto getPostById(Long postId, Long memberId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 " + postId + "를 찾을 수 없습니다."));
@@ -70,6 +71,8 @@ public class PostService {
             throw new IllegalArgumentException("비공개 게시글에 접근할 권한이 없습니다.");
         }
 
+        post.incrementViewCount(); // 조회수 증가
+        postRepository.save(post); // 변경된 조회수 저장
         long likeCount = postLikeRepository.countByPostId(postId);
         return PostResponseDto.from(post, likeCount);
     }

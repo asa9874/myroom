@@ -92,4 +92,8 @@ public class Post {
             this.model3D = model3D;
         }
     }
+
+    public void incrementViewCount() {
+        this.viewCount++;
+    }
 }

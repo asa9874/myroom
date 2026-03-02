@@ -47,12 +47,17 @@ public class RecommandController implements RecommandApi {
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> requestRecommandation(
             @RequestPart(value = "image", required = true) MultipartFile imageFile,
-            @RequestParam(value = "category", required = false, defaultValue = "chair") String category,
+            @RequestParam(value = "category", required = false, defaultValue = "") String category,
             @RequestParam(value = "topK", required = false, defaultValue = "5") Integer topK,
             @AuthenticationPrincipal CustomUserDetails member) {
         
+        // category가 null인 경우 빈 문자열로 처리 (AI 서버에서 빈 문자열 = 카테고리 무관 전체 반환)
+        if (category == null) {
+            category = "";
+        }
+
         log.info("추천 요청 수신: memberId={}, category={}, topK={}, fileName={}", 
-                member.getId(), category, topK, imageFile.getOriginalFilename());
+                member.getId(), category.isEmpty() ? "(전체)" : category, topK, imageFile.getOriginalFilename());
         
         // 입력 값 검증
         if (imageFile.isEmpty()) {

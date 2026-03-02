@@ -84,7 +84,14 @@ public record Model3DResponseDto(
             example = "SUCCESS",
             allowableValues = {"PROCESSING", "SUCCESS", "FAILED"}
         )
-        String status
+        String status,
+
+        @Schema(
+            description = "3D 모델 생성 실패 시 에러 메시지 (성공 또는 처리 중일 때는 null)",
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "Failed to generate 3D model: timeout"
+        )
+        String errorMessage
 ) {
     public static Model3DResponseDto from(Model3D model3D) {
         return new Model3DResponseDto(
@@ -97,7 +104,8 @@ public record Model3DResponseDto(
                 model3D.getDescription(),
                 model3D.getThumbnailUrl(),
                 model3D.getIsVectorDbTrained(),
-                model3D.getStatus()
+                model3D.getStatus(),
+                model3D.getErrorMessage()
         );
     }
     

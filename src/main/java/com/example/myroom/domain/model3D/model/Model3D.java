@@ -28,6 +28,7 @@ public class Model3D {
     private Boolean isVectorDbTrained = false;
     private String furnitureType;
     private String status = "PROCESSING";
+    private String errorMessage;
 
     @Builder
     public Model3D(String name, LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl, Boolean isVectorDbTrained, String furnitureType) {
@@ -91,6 +92,10 @@ public class Model3D {
         if (status != null && (status.equals("SUCCESS") || status.equals("FAILED"))) {
             this.status = status;
         }
+    }
+
+    public void updateErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 
     public void adminUpdate(String name, String link, Long creatorId, Boolean isShared, String description) {

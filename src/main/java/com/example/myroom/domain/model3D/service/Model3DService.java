@@ -124,8 +124,8 @@ public class Model3DService {
     public String uploadModel3DFile(MultipartFile file, Model3DUploadRequestDto uploadRequestDto, Long memberId) {
         String imageUrl;
         try { 
-            imageUrl = imageUploadService.uploadImage(file); //로컬저장
-            //imageUrl = s3ImageUploadService.uploadImage(file); // S3저장
+            //imageUrl = imageUploadService.uploadImage(file); //로컬저장
+            imageUrl = s3ImageUploadService.uploadImage(file); // S3저장
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
@@ -196,8 +196,9 @@ public class Model3DService {
             Model3D model3D = model3DRepository.findById(response.getModel3dId())
                     .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + response.getModel3dId() + "을 찾을 수 없습니다."));
 
-            // 상태를 FAILED로 업데이트
+            // 상태를 FAILED로 업데이트하고 에러 메시지 저장
             model3D.updateStatus("FAILED");
+            model3D.updateErrorMessage(response.getMessage());
             
             Model3D failedModel = model3DRepository.save(model3D);
             

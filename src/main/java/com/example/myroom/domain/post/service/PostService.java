@@ -55,8 +55,8 @@ public class PostService {
         String imageUrl = null;
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
-                imageUrl = imageUploadService.uploadImage(imageFile);
-                //imageUrl = s3ImageUploadService.uploadImage(file);
+                //imageUrl = imageUploadService.uploadImage(imageFile);
+                imageUrl = s3ImageUploadService.uploadImage(imageFile);
             } catch (IOException e) {
                 throw new RuntimeException("이미지 업로드 실패: " + e.getMessage());
             }

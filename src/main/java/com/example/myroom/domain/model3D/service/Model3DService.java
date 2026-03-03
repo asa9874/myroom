@@ -139,7 +139,7 @@ public class Model3DService {
                 .creatorId(memberId)
                 .link(null) // link는 null로 저장
                 .thumbnailUrl(imageUrl)
-                .createdAt(null) // createdAt은 null로 저장
+                .createdAt(LocalDateTime.now())
                 .isVectorDbTrained(false)
                 .build();
 

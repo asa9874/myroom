@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/model3d/{model3dId}/dimensions")
+@RequestMapping("/api/model3ds/{model3dId}/dimensions")
 public class ModelDimensionsController implements ModelDimensionsApi {
     private final ModelDimensionsService modelDimensionsService;
 

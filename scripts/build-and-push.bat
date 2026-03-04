@@ -8,7 +8,14 @@ setlocal enabledelayedexpansion
 
 set "IMAGE_NAME=myroom-app"
 set "TAG=%1"
-if "%TAG%"=="" set "TAG=latest"
+if "%TAG%"=="" (
+    REM 자동 버저닝: 날짜 + git 커밋 해시 조합
+    for /f %%i in ('git rev-parse --short HEAD 2^>nul') do set "GIT_HASH=%%i"
+    if "!GIT_HASH!"=="" set "GIT_HASH=nogit"
+    set "DATE_STR=%date:~0,4%%date:~5,2%%date:~8,2%"
+    set "TAG=!DATE_STR!-!GIT_HASH!"
+    echo 자동 생성된 태그: !TAG!
+)
 
 echo ========================================
 echo   MyRoom Docker Build ^& Push Script
@@ -52,14 +59,14 @@ echo.
 
 echo [3/5] Docker 이미지 빌드 중...
 set "FULL_IMAGE_NAME=%DOCKERHUB_USERNAME%/%IMAGE_NAME%:%TAG%"
+set "LATEST_IMAGE_NAME=%DOCKERHUB_USERNAME%/%IMAGE_NAME%:latest"
 docker build -t "%FULL_IMAGE_NAME%" .
 if errorlevel 1 (
     echo 오류: Docker 이미지 빌드 실패
     exit /b 1
 )
-if not "%TAG%"=="latest" (
-    docker tag "%FULL_IMAGE_NAME%" "%DOCKERHUB_USERNAME%/%IMAGE_NAME%:latest"
-)
+REM latest 태그도 항상 부여
+docker tag "%FULL_IMAGE_NAME%" "%LATEST_IMAGE_NAME%"
 echo √ Docker 이미지 빌드 완료: %FULL_IMAGE_NAME%
 echo.
 
@@ -70,10 +77,13 @@ if errorlevel 1 (
     echo Docker Hub에 로그인했는지 확인하세요: docker login
     exit /b 1
 )
-if not "%TAG%"=="latest" (
-    docker push "%DOCKERHUB_USERNAME%/%IMAGE_NAME%:latest"
+REM latest도 항상 push
+docker push "%LATEST_IMAGE_NAME%"
+if errorlevel 1 (
+    echo 오류: latest 태그 Docker push 실패
+    exit /b 1
 )
-echo √ Docker Hub 푸시 완료
+echo √ Docker Hub 푸시 완료 ^(버전: %TAG%, latest 동시 업데이트^)
 echo.
 
 echo [5/5] 완료

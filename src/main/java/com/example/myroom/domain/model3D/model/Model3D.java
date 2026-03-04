@@ -29,9 +29,10 @@ public class Model3D {
     private String furnitureType;
     private String status = "PROCESSING";
     private String errorMessage;
+    private String shopPageLink;
 
     @Builder
-    public Model3D(String name, LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl, Boolean isVectorDbTrained, String furnitureType) {
+    public Model3D(String name, LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl, Boolean isVectorDbTrained, String furnitureType, String shopPageLink) {
         this.name = name;
         this.createdAt = createdAt;
         this.link = link;
@@ -41,9 +42,10 @@ public class Model3D {
         this.thumbnailUrl = thumbnailUrl;
         this.isVectorDbTrained = isVectorDbTrained != null ? isVectorDbTrained : false;
         this.furnitureType = furnitureType;
+        this.shopPageLink = shopPageLink;
     }
 
-    public void update(String name, Boolean isShared, String description, Boolean isVectorDbTrained) {
+    public void update(String name, Boolean isShared, String description, Boolean isVectorDbTrained, String shopPageLink) {
         if (name != null) {
             this.name = name;
         }
@@ -56,9 +58,12 @@ public class Model3D {
         if (isVectorDbTrained != null) {
             this.isVectorDbTrained = isVectorDbTrained;
         }
+        if (shopPageLink != null) {
+            this.shopPageLink = shopPageLink;
+        }
     }
 
-    public void updateWithLink(String name, Boolean isShared, String description, String link, Boolean isVectorDbTrained) {
+    public void updateWithLink(String name, Boolean isShared, String description, String link, Boolean isVectorDbTrained, String shopPageLink) {
         if (name != null) {
             this.name = name;
         }
@@ -73,6 +78,9 @@ public class Model3D {
         }
         if (isVectorDbTrained != null) {
             this.isVectorDbTrained = isVectorDbTrained;
+        }
+        if (shopPageLink != null) {
+            this.shopPageLink = shopPageLink;
         }
     }
 
@@ -98,7 +106,7 @@ public class Model3D {
         this.errorMessage = errorMessage;
     }
 
-    public void adminUpdate(String name, String link, Long creatorId, Boolean isShared, String description) {
+    public void adminUpdate(String name, String link, Long creatorId, Boolean isShared, String description, String shopPageLink) {
         if (name != null) {
             this.name = name;
         }
@@ -113,6 +121,9 @@ public class Model3D {
         }
         if (description != null) {
             this.description = description;
+        }
+        if (shopPageLink != null) {
+            this.shopPageLink = shopPageLink;
         }
     }
 }

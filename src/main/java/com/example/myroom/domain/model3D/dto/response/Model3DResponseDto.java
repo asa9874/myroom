@@ -91,7 +91,14 @@ public record Model3DResponseDto(
             requiredMode = RequiredMode.NOT_REQUIRED,
             example = "Failed to generate 3D model: timeout"
         )
-        String errorMessage
+        String errorMessage,
+
+        @Schema(
+            description = "쇼핑몰 페이지 링크 (null이면 미등록)",
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "https://shop.example.com/products/chair-123"
+        )
+        String shopPageLink
 ) {
     public static Model3DResponseDto from(Model3D model3D) {
         return new Model3DResponseDto(
@@ -105,7 +112,8 @@ public record Model3DResponseDto(
                 model3D.getThumbnailUrl(),
                 model3D.getIsVectorDbTrained(),
                 model3D.getStatus(),
-                model3D.getErrorMessage()
+                model3D.getErrorMessage(),
+                model3D.getShopPageLink()
         );
     }
     

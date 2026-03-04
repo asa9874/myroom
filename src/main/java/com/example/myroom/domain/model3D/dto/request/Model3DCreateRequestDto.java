@@ -46,7 +46,15 @@ public record Model3DCreateRequestDto(
             example = "모던 스타일의 회색 의자입니다. 사무실용으로 적합합니다.",
             maxLength = 1000
         )
-        String description
+        String description,
+
+        @Schema(
+            description = "쇼핑몰 페이지 링크 (선택 입력, 기본값 null)",
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "https://shop.example.com/products/chair-123",
+            maxLength = 2083
+        )
+        String shopPageLink
 ) {
     
 }

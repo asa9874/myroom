@@ -40,7 +40,15 @@ public record Model3DUpdateRequestV2Dto(
             example = "https://example.com/model3d/sofa.glb",
             maxLength = 2083
         )
-        String link
+        String link,
+
+        @Schema(
+            description = "변경할 쇼핑몰 페이지 링크 (null이면 변경 없음)",
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "https://shop.example.com/products/sofa-456",
+            maxLength = 2083
+        )
+        String shopPageLink
 ) {
     
 }

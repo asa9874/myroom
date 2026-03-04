@@ -61,7 +61,14 @@ public record AdminModel3DResponseDto(
             requiredMode = RequiredMode.NOT_REQUIRED,
             example = "모던 스타일의 회색 의자입니다."
         )
-        String description
+        String description,
+
+        @Schema(
+            description = "쇼핑몰 페이지 링크 (null이면 미등록)",
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "https://shop.example.com/products/chair-123"
+        )
+        String shopPageLink
 ) {
     public static AdminModel3DResponseDto from(Model3D model3D) {
         return new AdminModel3DResponseDto(
@@ -71,7 +78,8 @@ public record AdminModel3DResponseDto(
                 model3D.getLink(),
                 model3D.getCreatorId(),
                 model3D.getIsShared(),
-                model3D.getDescription()
+                model3D.getDescription(),
+                model3D.getShopPageLink()
         );
     }
     

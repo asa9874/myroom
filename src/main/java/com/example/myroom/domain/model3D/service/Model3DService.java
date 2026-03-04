@@ -35,7 +35,7 @@ public class Model3DService {
     public Model3DResponseDto getModel3DById(Long model3dId, Long memberId) {
         Model3D model3D = model3DRepository.findById(model3dId)
                 .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + model3dId + "을 찾을 수 없습니다."));
-        if (!isOwner(model3D.getCreatorId(), memberId)) {
+        if (!isOwner(model3D.getCreatorId(), memberId) && !model3D.getIsShared()) {
             throw new IllegalArgumentException("3D 모델에 접근할 권한이 없습니다.");
         }
         return Model3DResponseDto.from(model3D);
@@ -53,7 +53,8 @@ public class Model3DService {
                 updateRequestDto.name(),
                 updateRequestDto.isShared(),
                 updateRequestDto.description(),
-                null);
+                null,
+                updateRequestDto.shopPageLink());
 
         Model3D updatedModel3D = model3DRepository.save(model3D);
         
@@ -85,7 +86,8 @@ public class Model3DService {
                 updateRequestDto.isShared(),
                 updateRequestDto.description(),
                 updateRequestDto.link(),
-                null);
+                null,
+                updateRequestDto.shopPageLink());
 
         Model3D updatedModel3D = model3DRepository.save(model3D);
         

@@ -39,6 +39,7 @@ public class AdminModel3DService {
                 .creatorId(createRequestDto.creatorId())
                 .isShared(createRequestDto.isShared())
                 .description(createRequestDto.description())
+                .shopPageLink(createRequestDto.shopPageLink())
                 .build();
         Model3D savedModel3D = model3DRepository.save(model3D);
         return AdminModel3DResponseDto.from(savedModel3D);
@@ -53,7 +54,8 @@ public class AdminModel3DService {
                 updateRequestDto.link(),
                 updateRequestDto.creatorId(),
                 updateRequestDto.isShared(),
-                updateRequestDto.description());
+                updateRequestDto.description(),
+                updateRequestDto.shopPageLink());
 
         Model3D updatedModel3D = model3DRepository.save(model3D);
         return AdminModel3DResponseDto.from(updatedModel3D);

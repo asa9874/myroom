@@ -32,7 +32,15 @@ public record Model3DUpdateRequestDto(
             example = "편안한 3인용 소파입니다. 거실용으로 적합합니다.",
             maxLength = 1000
         )
-        String description
+        String description,
+
+        @Schema(
+            description = "변경할 쇼핑몰 페이지 링크 (null이면 변경 없음)",
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "https://shop.example.com/products/sofa-456",
+            maxLength = 2083
+        )
+        String shopPageLink
 ) {
     
 }

@@ -63,6 +63,24 @@ public class Model3D {
         }
     }
 
+    public void updateV3(String name, Boolean isShared, String description, String furnitureType, String shopPageLink) {
+        if (name != null) {
+            this.name = name;
+        }
+        if (isShared != null) {
+            this.isShared = isShared;
+        }
+        if (description != null) {
+            this.description = description;
+        }
+        if (furnitureType != null) {
+            this.furnitureType = furnitureType;
+        }
+        if (shopPageLink != null) {
+            this.shopPageLink = shopPageLink;
+        }
+    }
+
     public void updateWithLink(String name, Boolean isShared, String description, String link, Boolean isVectorDbTrained, String shopPageLink) {
         if (name != null) {
             this.name = name;

@@ -6,8 +6,11 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -20,11 +23,13 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class ImageUploadService {
     private static final String UPLOAD_DIR = "C:/uploads/";
+    private static final List<String> ALLOWED_MIME_TYPES = List.of("image/jpeg", "image/jpg", "image/png", "image/webp");
 
     public String uploadImage(MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new IOException("Image file is empty");
         }
+        validateImageFile(file);
         try {
             Files.createDirectories(Paths.get(UPLOAD_DIR));
             String originalFileName = file.getOriginalFilename();
@@ -42,6 +47,30 @@ public class ImageUploadService {
         } catch (IOException e) {
             log.error("File upload failed", e);
             throw new IOException("Image Upload Fail", e);
+        }
+    }
+
+    private void validateImageFile(MultipartFile file) {
+        // 1. MIME 타입 화이트리스트 검증 (JPG, PNG만 허용)
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType.toLowerCase())) {
+            throw new IllegalArgumentException("허용되지 않는 파일 형식입니다. (JPG, PNG만 가능)");
+        }
+
+        // 2. AVIF 매직 바이트 검사 - 확장자 위조 대응 (bytes 4-7: "ftyp", bytes 8-11: "avif"/"avis")
+        try (InputStream is = file.getInputStream()) {
+            byte[] header = new byte[12];
+            if (is.read(header) >= 12) {
+                String ftyp = new String(header, 4, 4, StandardCharsets.ISO_8859_1);
+                String brand = new String(header, 8, 4, StandardCharsets.ISO_8859_1);
+                if ("ftyp".equals(ftyp) && (brand.startsWith("avif") || brand.startsWith("avis"))) {
+                    throw new IllegalArgumentException("AVIF 형식은 지원하지 않습니다. JPG 또는 PNG를 사용하세요.");
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("파일 검증 중 오류가 발생했습니다.", e);
         }
     }
 

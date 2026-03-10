@@ -50,6 +50,9 @@ dependencies {
 
 	runtimeOnly 'com.mysql:mysql-connector-j:9.3.0'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// WebP 이미지 일기 지원 (ImageIO 플러그인)
+	implementation 'com.twelvemonkeys.imageio:imageio-webp:3.10.1'
 }
 
 tasks.named('test') {

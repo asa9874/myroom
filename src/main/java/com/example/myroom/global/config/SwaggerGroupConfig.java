@@ -49,6 +49,14 @@ public class SwaggerGroupConfig {
     }
 
     @Bean
+    public GroupedOpenApi room3dApi() {
+        return GroupedOpenApi.builder()
+                .group("3D 룸 에셋")
+                .pathsToMatch("/api/room3d/**")
+                .build();
+    }
+
+    @Bean
     public GroupedOpenApi testDataApi() {
         return GroupedOpenApi.builder()
                 .group("🧪 테스트 데이터")

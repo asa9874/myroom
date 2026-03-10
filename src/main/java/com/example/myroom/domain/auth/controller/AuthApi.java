@@ -1,8 +1,12 @@
 package com.example.myroom.domain.auth.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.myroom.domain.auth.dto.request.AuthLoginRequestDto;
 import com.example.myroom.domain.auth.dto.request.AuthRefreshRequestDto;
@@ -22,6 +26,41 @@ import jakarta.validation.Valid;
 
 @Tag(name = "🔐 인증", description = "회원가입 및 로그인 API - 사용자 인증 관련 기능을 제공합니다.")
 public interface AuthApi {
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "이메일 중복 여부 조회 성공",
+                content = @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(
+                        name = "이미 사용 중인 이메일",
+                        value = "{\"exists\": true}"
+                    )
+                )
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "이메일 파라미터 누락",
+                content = @Content(schema = @Schema(hidden = true))
+            )
+        }
+    )
+    @Operation(
+        summary = "이메일 중복 확인",
+        description = """
+            이메일이 이미 가입되어 있는지 확인합니다.
+            
+            - `exists: true` → 이미 사용 중인 이메일 (가입 불가)
+            - `exists: false` → 사용 가능한 이메일 (가입 가능)
+            """
+    )
+    @GetMapping("/exists")
+    ResponseEntity<Map<String, Boolean>> checkEmailExists(
+            @Parameter(description = "중복 확인할 이메일 주소", required = true, example = "user@example.com")
+            @RequestParam("email") String email
+    );
 
     @ApiResponses(
         value = {

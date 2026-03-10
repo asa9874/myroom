@@ -31,6 +31,11 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserTokenRepository userTokenRepository;
 
+    @Transactional(readOnly = true)
+    public boolean existsEmail(String email) {
+        return memberRepository.existsByEmail(email);
+    }
+
     public void registerMember(AuthRegisterRequestDto memberRequestDto) {
         if (memberRepository.existsByEmail(memberRequestDto.email())) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다: " + memberRequestDto.email());

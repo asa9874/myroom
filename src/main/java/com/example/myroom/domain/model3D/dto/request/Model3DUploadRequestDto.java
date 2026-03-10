@@ -1,5 +1,6 @@
 package com.example.myroom.domain.model3D.dto.request;
 
+import com.example.myroom.domain.model3D.model.FurnitureCategory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -7,12 +8,18 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 @JsonNaming(SnakeCaseStrategy.class)
 public record Model3DUploadRequestDto(
-        @Schema(description = "가구 타입", requiredMode = RequiredMode.REQUIRED)
-        @NotEmpty(message = "가구 타입은 비어 있을 수 없습니다.")
-        String furnitureType,
+        @Schema(
+            description = "가구 타입",
+            requiredMode = RequiredMode.REQUIRED,
+            example = "chair",
+            allowableValues = {"shelf", "sofa", "storage", "chair", "lighting", "desk", "bed", "table", "others"}
+        )
+        @NotNull(message = "가구 타입은 필수입니다.")
+        FurnitureCategory furnitureType,
         
         @Schema(description = "3D 모델 이름", requiredMode = RequiredMode.REQUIRED)
         @NotEmpty(message = "이름은 비어 있을 수 없습니다.")

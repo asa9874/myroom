@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import com.example.myroom.domain.model3D.dto.message.Model3DDeleteMessage;
 import com.example.myroom.domain.model3D.dto.message.Model3DMetadataUpdateMessage;
 import com.example.myroom.domain.model3D.dto.message.Model3DUploadMessage;
+import com.example.myroom.domain.model3D.model.FurnitureCategory;
 import com.example.myroom.global.config.RabbitConfig;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class Model3DProducer {
     /**
      * 3D 모델 업로드 메시지 발송
      */
-    public void sendModel3DUploadMessage(String imageUrl, Long memberId, Long model3dId, String furnitureType, Boolean isShared) {
+    public void sendModel3DUploadMessage(String imageUrl, Long memberId, Long model3dId, FurnitureCategory furnitureType, Boolean isShared) {
         Model3DUploadMessage message = Model3DUploadMessage.builder()
                 .imageUrl(imageUrl)
                 .memberId(memberId)

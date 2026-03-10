@@ -25,6 +25,7 @@ import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestV2Dto;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestV3Dto;
 import com.example.myroom.domain.model3D.dto.request.Model3DUploadRequestDto;
 import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
+import com.example.myroom.domain.model3D.model.FurnitureCategory;
 import com.example.myroom.domain.model3D.service.Model3DService;
 import com.example.myroom.global.jwt.CustomUserDetails;
 
@@ -102,7 +103,12 @@ public class Model3DController implements Model3DApi {
             @RequestParam(value = "description", required = false) String description,
             @RequestParam(value = "is_shared", required = false) Boolean isShared,
             @AuthenticationPrincipal CustomUserDetails member) {
-        Model3DUploadRequestDto uploadRequestDto = new Model3DUploadRequestDto(furnitureType, name, description, isShared);
+        Model3DUploadRequestDto uploadRequestDto = new Model3DUploadRequestDto(
+            FurnitureCategory.fromString(furnitureType), 
+            name, 
+            description, 
+            isShared
+        );
         String fileUrl = model3DService.uploadModel3DFile(imageFile, uploadRequestDto, member.getId());
         return ResponseEntity.ok(fileUrl);
     }
@@ -113,7 +119,7 @@ public class Model3DController implements Model3DApi {
             @RequestPart(value = "image", required = true) MultipartFile imageFile,
             @AuthenticationPrincipal CustomUserDetails member) {
         // 기본값 설정
-        String furnitureType = "others";
+        FurnitureCategory furnitureType = FurnitureCategory.OTHERS;
         String name = "Temp_name_" + System.currentTimeMillis();
         String description = "임시 설명";
         Boolean isShared = false;

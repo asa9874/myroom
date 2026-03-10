@@ -26,13 +26,15 @@ public class Model3D {
     private String description;
     private String thumbnailUrl;
     private Boolean isVectorDbTrained = false;
-    private String furnitureType;
+    
+    private FurnitureCategory furnitureType;
+    
     private String status = "PROCESSING";
     private String errorMessage;
     private String shopPageLink;
 
     @Builder
-    public Model3D(String name, LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl, Boolean isVectorDbTrained, String furnitureType, String shopPageLink) {
+    public Model3D(String name, LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl, Boolean isVectorDbTrained, FurnitureCategory furnitureType, String shopPageLink) {
         this.name = name;
         this.createdAt = createdAt;
         this.link = link;
@@ -63,7 +65,7 @@ public class Model3D {
         }
     }
 
-    public void updateV3(String name, Boolean isShared, String description, String furnitureType, String shopPageLink) {
+    public void updateV3(String name, Boolean isShared, String description, FurnitureCategory furnitureType, String shopPageLink) {
         if (name != null) {
             this.name = name;
         }

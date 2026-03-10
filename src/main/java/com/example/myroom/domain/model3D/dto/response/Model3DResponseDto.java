@@ -2,6 +2,7 @@ package com.example.myroom.domain.model3D.dto.response;
 
 import java.time.LocalDateTime;
 
+import com.example.myroom.domain.model3D.model.FurnitureCategory;
 import com.example.myroom.domain.model3D.model.Model3D;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
@@ -98,7 +99,16 @@ public record Model3DResponseDto(
             requiredMode = RequiredMode.NOT_REQUIRED,
             example = "https://shop.example.com/products/chair-123"
         )
-        String shopPageLink
+        String shopPageLink,
+        
+        @Schema(
+            description = "가구 카테고리",
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "chair",
+            allowableValues = {"shelf", "sofa", "storage", "chair", "lighting", "desk", "bed", "table", "others"}
+        )
+        @JsonProperty("furniture_type")
+        FurnitureCategory furnitureType
 ) {
     public static Model3DResponseDto from(Model3D model3D) {
         return new Model3DResponseDto(
@@ -113,7 +123,8 @@ public record Model3DResponseDto(
                 model3D.getIsVectorDbTrained(),
                 model3D.getStatus(),
                 model3D.getErrorMessage(),
-                model3D.getShopPageLink()
+                model3D.getShopPageLink(),
+                model3D.getFurnitureType()
         );
     }
     

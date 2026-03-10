@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.myroom.domain.member.model.Member;
 import com.example.myroom.domain.member.model.Role;
 import com.example.myroom.domain.member.repository.MemberRepository;
+import com.example.myroom.domain.model3D.model.FurnitureCategory;
 import com.example.myroom.domain.model3D.model.Model3D;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
 import com.example.myroom.domain.post.model.Category;
@@ -60,11 +61,17 @@ public class TestDataService {
         }
         
         List<Long> createdIds = new ArrayList<>();
-        String[] furnitureTypes = {"chair", "table", "bed", "sofa", "desk"};
+        FurnitureCategory[] furnitureTypes = {
+            FurnitureCategory.CHAIR, 
+            FurnitureCategory.TABLE, 
+            FurnitureCategory.BED, 
+            FurnitureCategory.SOFA, 
+            FurnitureCategory.DESK
+        };
         
         for (int i = 1; i <= count; i++) {
             Member randomMember = members.get(random.nextInt(members.size()));
-            String furnitureType = furnitureTypes[random.nextInt(furnitureTypes.length)];
+            FurnitureCategory furnitureType = furnitureTypes[random.nextInt(furnitureTypes.length)];
             
             Model3D model3D = Model3D.builder()
                     .name("테스트3D모델" + i)

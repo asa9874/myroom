@@ -5,8 +5,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.example.myroom.domain.auth.dto.request.AuthLoginRequestDto;
+import com.example.myroom.domain.auth.dto.request.AuthRefreshRequestDto;
 import com.example.myroom.domain.auth.dto.request.AuthRegisterRequestDto;
 import com.example.myroom.domain.auth.dto.response.AuthLoginResponseDto;
+import com.example.myroom.domain.auth.dto.response.AuthRefreshResponseDto;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -210,6 +212,56 @@ public interface AuthApi {
                 required = true
             )
             @Valid @RequestBody AuthLoginRequestDto requestDto
+    );
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "토큰 갱신 성공 - 새 액세스 토큰 반환",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = AuthRefreshResponseDto.class),
+                    examples = @ExampleObject(
+                        name = "갱신 성공",
+                        value = "{\"token\": \"eyJhbGciOiJIUzI1NiJ9.newaccess\"}"
+                    )
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "유효하지 않거나 만료된 리프레시 토큰",
+                content = @Content(
+                    schema = @Schema(hidden = true),
+                    examples = @ExampleObject(
+                        name = "만료된 토큰",
+                        value = "{\"message\": \"만료된 리프레시 토큰입니다. 다시 로그인해주세요.\"}"
+                    )
+                )
+            )
+        }
+    )
+    @Operation(
+        summary = "액세스 토큰 갱신",
+        description = """
+            저장된 리프레시 토큰으로 새로운 액세스 토큰을 발급받습니다.
+
+            **앱 실행 시 자동 로그인 흐름:**
+            1. 기기 저장소에서 Refresh Token 꺼내기
+            2. 이 API 호출
+            3. 성공 → 받은 `token`으로 메인 화면 진입
+            4. 실패(401) → 로그인 화면으로 이동
+
+            **API 호출 중 액세스 토큰 만료 시:**
+            - 기존 API에서 401 응답 수신
+            - 이 API 호출하여 새 액세스 토큰 획득
+            - 원래 요청 재시도
+            """
+    )
+    @PostMapping("/refresh")
+    ResponseEntity<AuthRefreshResponseDto> refresh(
+            @Parameter(description = "토큰 갱신 요청 정보", required = true)
+            @Valid @RequestBody AuthRefreshRequestDto requestDto
     );
 
 }

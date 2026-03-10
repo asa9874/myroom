@@ -6,11 +6,17 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 @Schema(description = "로그인 응답 DTO")
 public record AuthLoginResponseDto(
         @Schema(
-            description = "JWT 액세스 토큰 - Authorization 헤더에 Bearer {token} 형식으로 사용", 
+            description = "JWT 액세스 토큰 (유효기간 1시간) - Authorization 헤더에 Bearer {token} 형식으로 사용",
             requiredMode = RequiredMode.REQUIRED,
-            example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkhvbmcgR2lsZG9uZyIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+            example = "eyJhbGciOiJIUzI1NiJ9.access"
         )
-        String token
+        String token,
+        @Schema(
+            description = "JWT 리프레시 토큰 (유효기간 30일) - 기기 내부 저장소에 안전하게 보관하여 /auth/refresh 호출 시 사용",
+            requiredMode = RequiredMode.REQUIRED,
+            example = "eyJhbGciOiJIUzI1NiJ9.refresh"
+        )
+        String refreshToken
 ) {
-    
 }
+

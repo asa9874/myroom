@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.myroom.domain.auth.dto.request.AuthLoginRequestDto;
+import com.example.myroom.domain.auth.dto.request.AuthRefreshRequestDto;
 import com.example.myroom.domain.auth.dto.request.AuthRegisterRequestDto;
 import com.example.myroom.domain.auth.dto.response.AuthLoginResponseDto;
+import com.example.myroom.domain.auth.dto.response.AuthRefreshResponseDto;
 import com.example.myroom.domain.auth.service.AuthService;
 
 import jakarta.validation.Valid;
@@ -41,4 +43,11 @@ public class AuthController implements AuthApi {
         return ResponseEntity.ok().body(responseDto);
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthRefreshResponseDto> refresh(
+            @Valid @RequestBody AuthRefreshRequestDto requestDto) {
+        AuthRefreshResponseDto responseDto = authService.refresh(requestDto);
+        return ResponseEntity.ok().body(responseDto);
+    }
 }
+

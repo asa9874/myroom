@@ -22,6 +22,7 @@ public class JwtTokenProvider {
     // TODO: 나중에 환경변수로 변경
     private static final String SECRET_KEY = "qw2312qseee123qwe21q124q2wqqeqweqeqweqweqweqweqweqweqweqweqweqweqweqweqweqweqweqwe";
     private static final long EXPIRATION_TIME = 1000 * 60 * 60; // 1시간
+    private static final long REFRESH_EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 30; // 30일
 
     private final SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
 
@@ -33,6 +34,15 @@ public class JwtTokenProvider {
                 .subject(email)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    // Refresh Token 생성 (랜덤 UUID 기반, 만료일 포함 X – DB에서 관리)
+    public String createRefreshToken() {
+        return Jwts.builder()
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + REFRESH_EXPIRATION_TIME))
                 .signWith(key, Jwts.SIG.HS256)
                 .compact();
     }

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.recommand.dto.response.RecommandHistoryResponseDto;
+import com.example.myroom.domain.recommand.dto.response.RecommandSimpleHistoryResponseDto;
 import com.example.myroom.domain.recommand.service.RecommandService;
 import com.example.myroom.global.jwt.CustomUserDetails;
 
@@ -110,6 +112,39 @@ public class RecommandController implements RecommandApi {
 
         return ResponseEntity.ok(
                 recommandService.getMyRecommandHistories(member.getId(), pageable)
+        );
+    }
+
+    @GetMapping("/{historyId}")
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<RecommandHistoryResponseDto> getMyRecommandHistoryById(
+            @AuthenticationPrincipal CustomUserDetails member,
+            @PathVariable(name = "historyId") Long historyId) {
+
+        return ResponseEntity.ok(
+                recommandService.getMyRecommandHistoryById(member.getId(), historyId)
+        );
+    }
+
+    @GetMapping("/my/simple")
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Page<RecommandSimpleHistoryResponseDto>> getMySimpleRecommandHistories(
+            @AuthenticationPrincipal CustomUserDetails member,
+            @PageableDefault(size = 10) Pageable pageable) {
+
+        return ResponseEntity.ok(
+                recommandService.getMySimpleRecommandHistories(member.getId(), pageable)
+        );
+    }
+
+    @GetMapping("/{historyId}/simple")
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<RecommandSimpleHistoryResponseDto> getMySimpleRecommandHistoryById(
+            @AuthenticationPrincipal CustomUserDetails member,
+            @PathVariable(name = "historyId") Long historyId) {
+
+        return ResponseEntity.ok(
+                recommandService.getMySimpleRecommandHistoryById(member.getId(), historyId)
         );
     }
 }

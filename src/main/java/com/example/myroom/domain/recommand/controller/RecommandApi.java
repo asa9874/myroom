@@ -7,12 +7,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.recommand.dto.response.RecommandHistoryResponseDto;
+import com.example.myroom.domain.recommand.dto.response.RecommandSimpleHistoryResponseDto;
 import com.example.myroom.global.jwt.CustomUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -213,5 +215,104 @@ public interface RecommandApi {
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails member,
             @PageableDefault(size = 10) Pageable pageable
+    );
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "추천 이력 단건 조회 성공",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = RecommandHistoryResponseDto.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "인증되지 않음",
+                content = @Content(schema = @Schema(hidden = true))
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "추천 이력을 찾을 수 없음",
+                content = @Content(schema = @Schema(hidden = true))
+            )
+        }
+    )
+    @Operation(
+        summary = "추천 이력 단건 조회",
+        description = "현재 로그인한 사용자의 추천 이력을 ID로 단건 조회합니다.",
+        security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @GetMapping("/{historyId}")
+    ResponseEntity<RecommandHistoryResponseDto> getMyRecommandHistoryById(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails member,
+            @Parameter(description = "조회할 추천 이력 ID", required = true, example = "1")
+            @PathVariable(name = "historyId") Long historyId
+    );
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "추천 이력 간소화 페이지 조회 성공",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = Page.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "인증되지 않음",
+                content = @Content(schema = @Schema(hidden = true))
+            )
+        }
+    )
+    @Operation(
+        summary = "추천 이력 간소화 페이지 조회",
+        description = "confidence, bbox, score, rank, filename을 제외한 간소화 추천 이력 목록을 페이지네이션 조회합니다.",
+        security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @GetMapping("/my/simple")
+    ResponseEntity<Page<RecommandSimpleHistoryResponseDto>> getMySimpleRecommandHistories(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails member,
+            @PageableDefault(size = 10) Pageable pageable
+    );
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "추천 이력 간소화 단건 조회 성공",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = RecommandSimpleHistoryResponseDto.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "인증되지 않음",
+                content = @Content(schema = @Schema(hidden = true))
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "추천 이력을 찾을 수 없음",
+                content = @Content(schema = @Schema(hidden = true))
+            )
+        }
+    )
+    @Operation(
+        summary = "추천 이력 간소화 단건 조회",
+        description = "confidence, bbox, score, rank, filename을 제외한 간소화 추천 이력을 ID로 조회합니다.",
+        security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @GetMapping("/{historyId}/simple")
+    ResponseEntity<RecommandSimpleHistoryResponseDto> getMySimpleRecommandHistoryById(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails member,
+            @Parameter(description = "조회할 추천 이력 ID", required = true, example = "1")
+            @PathVariable(name = "historyId") Long historyId
     );
 }

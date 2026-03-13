@@ -15,6 +15,7 @@ import com.example.myroom.domain.member.repository.MemberRepository;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
 import com.example.myroom.domain.recommand.dto.message.RecommandResponseMessage;
 import com.example.myroom.domain.recommand.dto.response.RecommandHistoryResponseDto;
+import com.example.myroom.domain.recommand.dto.response.RecommandSimpleHistoryResponseDto;
 import com.example.myroom.domain.recommand.messaging.RecommandProducer;
 import com.example.myroom.domain.recommand.model.RecommandDetectedItem;
 import com.example.myroom.domain.recommand.model.RecommandHistory;
@@ -175,6 +176,23 @@ public class RecommandService {
     public Page<RecommandHistoryResponseDto> getMyRecommandHistories(Long memberId, Pageable pageable) {
         return recommandHistoryRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable)
                 .map(RecommandHistoryResponseDto::from);
+    }
+
+    public RecommandHistoryResponseDto getMyRecommandHistoryById(Long memberId, Long historyId) {
+        RecommandHistory history = recommandHistoryRepository.findByIdAndMemberId(historyId, memberId)
+                .orElseThrow(() -> new EntityNotFoundException("추천 이력을 찾을 수 없습니다. id=" + historyId));
+        return RecommandHistoryResponseDto.from(history);
+    }
+
+    public Page<RecommandSimpleHistoryResponseDto> getMySimpleRecommandHistories(Long memberId, Pageable pageable) {
+        return recommandHistoryRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable)
+                .map(RecommandSimpleHistoryResponseDto::from);
+    }
+
+    public RecommandSimpleHistoryResponseDto getMySimpleRecommandHistoryById(Long memberId, Long historyId) {
+        RecommandHistory history = recommandHistoryRepository.findByIdAndMemberId(historyId, memberId)
+                .orElseThrow(() -> new EntityNotFoundException("추천 이력을 찾을 수 없습니다. id=" + historyId));
+        return RecommandSimpleHistoryResponseDto.from(history);
     }
 
     private void persistRecommandHistory(RecommandResponseMessage response) {

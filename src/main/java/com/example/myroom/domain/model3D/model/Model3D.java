@@ -25,6 +25,7 @@ public class Model3D {
     private Boolean isShared = false;
     private String description;
     private String thumbnailUrl;
+    private String trainingImageUrl;
     private Boolean isVectorDbTrained = false;
     
     private FurnitureCategory furnitureType;
@@ -34,7 +35,7 @@ public class Model3D {
     private String shopPageLink;
 
     @Builder
-    public Model3D(String name, LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl, Boolean isVectorDbTrained, FurnitureCategory furnitureType, String shopPageLink) {
+    public Model3D(String name, LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl, String trainingImageUrl, Boolean isVectorDbTrained, FurnitureCategory furnitureType, String shopPageLink) {
         this.name = name;
         this.createdAt = createdAt;
         this.link = link;
@@ -42,6 +43,7 @@ public class Model3D {
         this.isShared = isShared != null ? isShared : false;
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
+        this.trainingImageUrl = trainingImageUrl;
         this.isVectorDbTrained = isVectorDbTrained != null ? isVectorDbTrained : false;
         this.furnitureType = furnitureType;
         this.shopPageLink = shopPageLink;

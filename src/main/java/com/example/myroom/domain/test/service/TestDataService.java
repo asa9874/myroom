@@ -81,6 +81,7 @@ public class TestDataService {
                     .isShared(random.nextBoolean())
                     .description("테스트용 3D 모델 " + i + "번입니다.")
                     .thumbnailUrl("https://s3.example.com/test-thumbnail-" + i + ".jpg")
+                    .trainingImageUrl("https://s3.example.com/test-training-" + i + ".jpg")
                     .isVectorDbTrained(false)
                     .furnitureType(furnitureType)
                     .build();

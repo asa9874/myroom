@@ -1,6 +1,5 @@
 package com.example.myroom.domain.image;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
@@ -34,6 +33,10 @@ public class S3ImageUploadService {
     private static final List<String> ALLOWED_MIME_TYPES = List.of("image/jpeg", "image/jpg", "image/png", "image/webp");
 
     public String uploadImage(MultipartFile file) throws IOException {
+        return uploadModel3DImages(file).thumbnailUrl();
+    }
+
+    public Model3DImageUrls uploadModel3DImages(MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new IOException("Image file is empty");
         }
@@ -45,25 +48,32 @@ public class S3ImageUploadService {
                 throw new IOException("Invalid file name");
             }
 
-            // 3D 모델링용 이미지 전처리 (종횡비 유지, 패딩 추가, PNG 투명 배경)
-            byte[] processedImageBytes = processImageFor3D(file, originalFileName);
+            byte[] thumbnailImageBytes = processImageFor3D(file, 512);
+            byte[] trainingImageBytes = processImageFor3D(file, 1024);
 
-            String fileName = System.currentTimeMillis() + ".png"; // 항상 PNG로 저장
-            String key = "images/" + fileName;
+            long timestamp = System.currentTimeMillis();
+            String thumbnailKey = "images/thumbnails/" + timestamp + "_512.png";
+            String trainingKey = "images/training/" + timestamp + "_1024.png";
 
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .contentType("image/png")
-                .build();
+            String thumbnailUrl = uploadPngBytes(thumbnailKey, thumbnailImageBytes);
+            String trainingImageUrl = uploadPngBytes(trainingKey, trainingImageBytes);
 
-            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(processedImageBytes));
-
-            return "https://" + bucketName + ".s3.amazonaws.com/" + key;
+            return new Model3DImageUrls(thumbnailUrl, trainingImageUrl);
         } catch (IOException e) {
             log.error("File upload failed", e);
             throw new IOException("Image Upload Fail", e);
         }
+    }
+
+    private String uploadPngBytes(String key, byte[] imageBytes) {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(key)
+            .contentType("image/png")
+            .build();
+
+        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(imageBytes));
+        return "https://" + bucketName + ".s3.amazonaws.com/" + key;
     }
 
     private void validateImageFile(MultipartFile file) {
@@ -95,7 +105,7 @@ public class S3ImageUploadService {
         return index > 0 ? fileName.substring(index + 1) : "";
     }
     
-    private byte[] processImageFor3D(MultipartFile originalFile, String fileName) throws IOException {
+    private byte[] processImageFor3D(MultipartFile originalFile, int canvasSize) throws IOException {
         BufferedImage originalImage = ImageIO.read(originalFile.getInputStream());
         if (originalImage == null) {
             throw new IOException("Invalid image file");
@@ -107,10 +117,7 @@ public class S3ImageUploadService {
         // 종횡비 계산
         double aspectRatio = (double) originalWidth / originalHeight;
         
-        // 512x512 캔버스 전체 영역 사용 (패딩 없음)
-        int canvasSize = 512;
-        
-        // 종횡비를 유지하면서 512x512에 맞는 크기 계산
+        // 종횡비를 유지하면서 canvasSize x canvasSize에 맞는 크기 계산
         int newWidth, newHeight;
         if (aspectRatio > 1.0) { // 가로가 더 긴 경우
             newWidth = canvasSize;

@@ -27,9 +27,9 @@ public class Model3DProducer {
     /**
      * 3D 모델 업로드 메시지 발송
      */
-    public void sendModel3DUploadMessage(String imageUrl, Long memberId, Long model3dId, FurnitureCategory furnitureType, Boolean isShared) {
+    public void sendModel3DUploadMessage(String trainingImageUrl, Long memberId, Long model3dId, FurnitureCategory furnitureType, Boolean isShared) {
         Model3DUploadMessage message = Model3DUploadMessage.builder()
-                .imageUrl(imageUrl)
+                .imageUrl(trainingImageUrl)
                 .memberId(memberId)
                 .model3dId(model3dId)
                 .furnitureType(furnitureType)
@@ -38,7 +38,7 @@ public class Model3DProducer {
                 .build();
 
         log.info("3D 모델 업로드 메시지 발송: imageUrl={}, memberId={}, model3dId={}, furnitureType={}, isShared={}", 
-            imageUrl, memberId, model3dId, furnitureType, isShared);
+            trainingImageUrl, memberId, model3dId, furnitureType, isShared);
 
         rabbitTemplate.convertAndSend(
                 RabbitConfig.MODEL3D_EXCHANGE, // 어느 교환기(우체국)로 보낼지

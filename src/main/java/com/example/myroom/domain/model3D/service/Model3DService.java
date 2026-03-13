@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.image.ImageUploadService;
+import com.example.myroom.domain.image.Model3DImageUrls;
 import com.example.myroom.domain.image.S3ImageUploadService;
 import com.example.myroom.domain.model3D.dto.message.Model3DGenerationResponse;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
@@ -157,10 +158,10 @@ public class Model3DService {
     }
 
     public String uploadModel3DFile(MultipartFile file, Model3DUploadRequestDto uploadRequestDto, Long memberId) {
-        String imageUrl;
+        Model3DImageUrls imageUrls;
         try { 
-            //imageUrl = imageUploadService.uploadImage(file); //로컬저장
-            imageUrl = s3ImageUploadService.uploadImage(file); // S3저장
+            //imageUrls = imageUploadService.uploadModel3DImages(file); //로컬저장
+            imageUrls = s3ImageUploadService.uploadModel3DImages(file); // S3저장
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
@@ -173,7 +174,8 @@ public class Model3DService {
                 .isShared(uploadRequestDto.isShared() != null ? uploadRequestDto.isShared() : false)
                 .creatorId(memberId)
                 .link(null) // link는 null로 저장
-                .thumbnailUrl(imageUrl)
+                .thumbnailUrl(imageUrls.thumbnailUrl())
+                .trainingImageUrl(imageUrls.trainingImageUrl())
                 .createdAt(LocalDateTime.now())
                 .isVectorDbTrained(false)
                 .build();
@@ -182,11 +184,11 @@ public class Model3DService {
         log.info("📝 3D 모델 임시 저장: model3dId={}, name={}, furnitureType={}", 
             savedModel.getId(), savedModel.getName(), savedModel.getFurnitureType());
 
-        // RabbitMQ로 메시지 전송 (furniture_type, is_shared 포함)
-        model3DProducer.sendModel3DUploadMessage(imageUrl, memberId, savedModel.getId(), 
+        // RabbitMQ로 메시지 전송 (학습용 1024x1024 이미지 URL 사용)
+        model3DProducer.sendModel3DUploadMessage(imageUrls.trainingImageUrl(), memberId, savedModel.getId(), 
             uploadRequestDto.furnitureType(), uploadRequestDto.isShared());
         
-        return imageUrl;
+        return imageUrls.thumbnailUrl();
     }
 
     public void saveGeneratedModel(Model3DGenerationResponse response) {

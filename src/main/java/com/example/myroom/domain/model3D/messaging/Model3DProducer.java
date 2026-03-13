@@ -47,6 +47,27 @@ public class Model3DProducer {
         );
     }
 
+            public void sendModel3DMultiUploadMessage(List<String> trainingImageUrls, Long memberId, Long model3dId,
+                FurnitureCategory furnitureType, Boolean isShared) {
+            Model3DUploadMessage message = Model3DUploadMessage.builder()
+                .imageUrls(trainingImageUrls)
+                .memberId(memberId)
+                .model3dId(model3dId)
+                .furnitureType(furnitureType)
+                .isShared(isShared)
+                .timestamp(System.currentTimeMillis())
+                .build();
+
+            log.info("3D 멀티뷰 업로드 메시지 발송: imageUrlsCount={}, memberId={}, model3dId={}, furnitureType={}, isShared={}",
+                trainingImageUrls.size(), memberId, model3dId, furnitureType, isShared);
+
+            rabbitTemplate.convertAndSend(
+                RabbitConfig.MODEL3D_EXCHANGE,
+                RabbitConfig.MODEL3D_ROUTING_KEY,
+                message
+            );
+            }
+
     /**
      * VectorDB 메타데이터 업데이트 메시지 발송
      * - 3D 모델 정보가 수정되면 VectorDB의 메타데이터도 함께 업데이트해야 합니다.

@@ -1,5 +1,7 @@
 package com.example.myroom.domain.model3D.dto.message;
 
+import java.util.List;
+
 import com.example.myroom.domain.model3D.model.FurnitureCategory;
 
 import lombok.AllArgsConstructor;
@@ -16,6 +18,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Model3DUploadMessage {
     private String imageUrl;
+    private List<String> imageUrls;
     private Long memberId;
     private Long model3dId;
     private FurnitureCategory furnitureType;

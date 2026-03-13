@@ -1,10 +1,13 @@
 package com.example.myroom.domain.model3D.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.example.myroom.domain.model3D.model.FurnitureCategory;
 import com.example.myroom.domain.model3D.model.Model3D;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
@@ -72,6 +75,13 @@ public record Model3DResponseDto(
         String thumbnailUrl,
 
         @Schema(
+            description = "3D 모델 학습용 이미지 URL 목록 (1024x1024)",
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "[\"https://s3.amazonaws.com/myroom-bucket/images/training/1710000000000_1024.png\",\"https://s3.amazonaws.com/myroom-bucket/images/training/1710000000001_1024.png\"]"
+        )
+        List<String> trainingImageUrls,
+
+        @Schema(
             description = "VectorDB 학습 완료 여부 - AI 추천 시스템에서 사용 가능 여부", 
             requiredMode = RequiredMode.REQUIRED,
             example = "true"
@@ -110,6 +120,8 @@ public record Model3DResponseDto(
         @JsonProperty("furniture_type")
         FurnitureCategory furnitureType
 ) {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     public static Model3DResponseDto from(Model3D model3D) {
         return new Model3DResponseDto(
                 model3D.getId(),
@@ -120,12 +132,29 @@ public record Model3DResponseDto(
                 model3D.getIsShared(),
                 model3D.getDescription(),
                 model3D.getThumbnailUrl(),
+                resolveTrainingImageUrls(model3D),
                 model3D.getIsVectorDbTrained(),
                 model3D.getStatus(),
                 model3D.getErrorMessage(),
                 model3D.getShopPageLink(),
                 model3D.getFurnitureType()
         );
+    }
+
+    private static List<String> resolveTrainingImageUrls(Model3D model3D) {
+        String trainingImageUrls = model3D.getTrainingImageUrls();
+        if (trainingImageUrls != null && !trainingImageUrls.isBlank()) {
+            try {
+                return OBJECT_MAPPER.readValue(trainingImageUrls, new TypeReference<List<String>>() {});
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (model3D.getTrainingImageUrl() != null && !model3D.getTrainingImageUrl().isBlank()) {
+            return List.of(model3D.getTrainingImageUrl());
+        }
+
+        return List.of();
     }
     
 }

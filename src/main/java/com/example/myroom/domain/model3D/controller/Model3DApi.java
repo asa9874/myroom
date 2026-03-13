@@ -59,6 +59,10 @@ public interface Model3DApi {
                                 "is_shared": false,
                                 "description": "모던 스타일의 회색 의자입니다.",
                                 "thumbnail_url": "https://s3.amazonaws.com/myroom-bucket/thumbnails/chair_thumb.png",
+                                "training_image_urls": [
+                                    "https://s3.amazonaws.com/myroom-bucket/images/training/1710000000000_1024.png",
+                                    "https://s3.amazonaws.com/myroom-bucket/images/training/1710000000001_1024.png"
+                                ],
                                 "is_vector_db_trained": true,
                                 "status": "SUCCESS"
                             }
@@ -123,6 +127,9 @@ public interface Model3DApi {
                                 "is_shared": true,
                                 "description": "편안한 3인용 소파입니다.",
                                 "thumbnail_url": "https://s3.amazonaws.com/myroom-bucket/thumbnails/chair_thumb.png",
+                                "training_image_urls": [
+                                    "https://s3.amazonaws.com/myroom-bucket/images/training/1710000000000_1024.png"
+                                ],
                                 "is_vector_db_trained": true,
                                 "status": "SUCCESS"
                             }
@@ -453,6 +460,77 @@ public interface Model3DApi {
                 description = "모델 설명",
                 required = false,
                 example = "모던 스타일의 회색 의자입니다."
+            )
+            @RequestParam(value = "description", required = false) String description,
+            @Parameter(
+                description = "공유 여부 (true: 공개, false: 비공개)",
+                required = false,
+                example = "false"
+            )
+            @RequestParam(value = "is_shared", required = false) Boolean isShared,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails member
+    );
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "멀티 이미지 업로드 및 3D 모델 생성 요청 성공",
+                content = @Content(
+                    mediaType = "text/plain",
+                    examples = @ExampleObject(
+                        name = "멀티 업로드 성공 응답",
+                        value = "https://s3.amazonaws.com/myroom-bucket/images/thumbnails/1710000000000_512.png"
+                    )
+                )
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 - 이미지 개수/필수 이미지 조건 위반",
+                content = @Content(schema = @Schema(hidden = true))
+            )
+        }
+    )
+    @Operation(
+        summary = "멀티뷰 이미지로 3D 모델 생성 요청",
+        description = """
+            최대 4장의 이미지를 업로드하여 멀티뷰 3D 모델 생성을 요청합니다.
+
+            **입력 규칙:**
+            - 최소 2장, 최대 4장
+            - 첫 번째/두 번째 이미지는 필수
+            - 첫 번째 이미지를 썸네일로 사용
+
+            **MQ 요청 규칙:**
+            - `imageUrls` 배열로 AI 서버에 전달
+            - 각 URL은 1024x1024 학습용 이미지 URL
+            """
+    )
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PostMapping(value = "/upload-multi", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ResponseEntity<String> uploadMultiModel3DFile(
+            @Parameter(
+                description = "멀티뷰 이미지 목록(최소 2장, 최대 4장, 앞 2장은 필수)",
+                required = true
+            )
+            @RequestPart(value = "images", required = true) List<MultipartFile> imageFiles,
+            @Parameter(
+                description = "가구 유형 (chair, table, bed, sofa 등)",
+                required = true,
+                example = "chair"
+            )
+            @RequestParam(value = "furniture_type", required = true) String furnitureType,
+            @Parameter(
+                description = "3D 모델 이름",
+                required = true,
+                example = "모던 의자 멀티뷰"
+            )
+            @RequestParam(value = "name", required = true) String name,
+            @Parameter(
+                description = "모델 설명",
+                required = false,
+                example = "정면/좌측/우측 촬영 이미지 기반 모델"
             )
             @RequestParam(value = "description", required = false) String description,
             @Parameter(

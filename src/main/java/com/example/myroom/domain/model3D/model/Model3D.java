@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,6 +27,8 @@ public class Model3D {
     private String description;
     private String thumbnailUrl;
     private String trainingImageUrl;
+    @Lob
+    private String trainingImageUrls;
     private Boolean isVectorDbTrained = false;
     
     private FurnitureCategory furnitureType;
@@ -35,7 +38,7 @@ public class Model3D {
     private String shopPageLink;
 
     @Builder
-    public Model3D(String name, LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl, String trainingImageUrl, Boolean isVectorDbTrained, FurnitureCategory furnitureType, String shopPageLink) {
+    public Model3D(String name, LocalDateTime createdAt, String link, Long creatorId, Boolean isShared, String description, String thumbnailUrl, String trainingImageUrl, String trainingImageUrls, Boolean isVectorDbTrained, FurnitureCategory furnitureType, String shopPageLink) {
         this.name = name;
         this.createdAt = createdAt;
         this.link = link;
@@ -44,6 +47,7 @@ public class Model3D {
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
         this.trainingImageUrl = trainingImageUrl;
+        this.trainingImageUrls = trainingImageUrls;
         this.isVectorDbTrained = isVectorDbTrained != null ? isVectorDbTrained : false;
         this.furnitureType = furnitureType;
         this.shopPageLink = shopPageLink;

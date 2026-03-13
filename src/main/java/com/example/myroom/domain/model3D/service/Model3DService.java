@@ -2,6 +2,7 @@ package com.example.myroom.domain.model3D.service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -21,6 +22,8 @@ import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
 import com.example.myroom.domain.model3D.messaging.Model3DProducer;
 import com.example.myroom.domain.model3D.model.Model3D;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +36,7 @@ public class Model3DService {
     private final ImageUploadService imageUploadService;
     private final S3ImageUploadService s3ImageUploadService;
     private final Model3DProducer model3DProducer;
+    private final ObjectMapper objectMapper;
 
     public Model3DResponseDto getModel3DById(Long model3dId, Long memberId) {
         Model3D model3D = model3DRepository.findById(model3dId)
@@ -176,6 +180,7 @@ public class Model3DService {
                 .link(null) // link는 null로 저장
                 .thumbnailUrl(imageUrls.thumbnailUrl())
                 .trainingImageUrl(imageUrls.trainingImageUrl())
+                .trainingImageUrls(serializeImageUrls(List.of(imageUrls.trainingImageUrl())))
                 .createdAt(LocalDateTime.now())
                 .isVectorDbTrained(false)
                 .build();
@@ -189,6 +194,75 @@ public class Model3DService {
             uploadRequestDto.furnitureType(), uploadRequestDto.isShared());
         
         return imageUrls.thumbnailUrl();
+    }
+
+    public String uploadModel3DMultiFile(List<MultipartFile> files, Model3DUploadRequestDto uploadRequestDto, Long memberId) {
+        validateMultiUploadFiles(files);
+
+        List<String> trainingImageUrls = new ArrayList<>();
+        String thumbnailUrl;
+
+        try {
+            Model3DImageUrls firstImageUrls = s3ImageUploadService.uploadModel3DImages(files.get(0));
+            thumbnailUrl = firstImageUrls.thumbnailUrl();
+            trainingImageUrls.add(firstImageUrls.trainingImageUrl());
+
+            for (int i = 1; i < files.size(); i++) {
+                Model3DImageUrls imageUrls = s3ImageUploadService.uploadModel3DImages(files.get(i));
+                trainingImageUrls.add(imageUrls.trainingImageUrl());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+        Model3D model3D = Model3D.builder()
+                .name(uploadRequestDto.name())
+                .furnitureType(uploadRequestDto.furnitureType())
+                .description(uploadRequestDto.description())
+                .isShared(uploadRequestDto.isShared() != null ? uploadRequestDto.isShared() : false)
+                .creatorId(memberId)
+                .link(null)
+                .thumbnailUrl(thumbnailUrl)
+                .trainingImageUrl(trainingImageUrls.get(0))
+                .trainingImageUrls(serializeImageUrls(trainingImageUrls))
+                .createdAt(LocalDateTime.now())
+                .isVectorDbTrained(false)
+                .build();
+
+        Model3D savedModel = model3DRepository.save(model3D);
+        log.info("📝 3D 멀티뷰 모델 임시 저장: model3dId={}, name={}, furnitureType={}, imageCount={}",
+                savedModel.getId(), savedModel.getName(), savedModel.getFurnitureType(), trainingImageUrls.size());
+
+        model3DProducer.sendModel3DMultiUploadMessage(trainingImageUrls, memberId, savedModel.getId(),
+                uploadRequestDto.furnitureType(), uploadRequestDto.isShared());
+
+        return thumbnailUrl;
+    }
+
+    private void validateMultiUploadFiles(List<MultipartFile> files) {
+        if (files == null || files.size() < 2) {
+            throw new IllegalArgumentException("멀티뷰 3D 생성에는 최소 2장의 이미지가 필요합니다.");
+        }
+        if (files.size() > 4) {
+            throw new IllegalArgumentException("멀티뷰 3D 생성은 최대 4장까지 업로드할 수 있습니다.");
+        }
+        if (files.get(0) == null || files.get(0).isEmpty() || files.get(1) == null || files.get(1).isEmpty()) {
+            throw new IllegalArgumentException("첫 번째와 두 번째 이미지는 필수입니다.");
+        }
+
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) {
+                throw new IllegalArgumentException("업로드 이미지에 빈 파일이 포함되어 있습니다.");
+            }
+        }
+    }
+
+    private String serializeImageUrls(List<String> imageUrls) {
+        try {
+            return objectMapper.writeValueAsString(imageUrls);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("학습 이미지 URL 저장 중 오류가 발생했습니다.", e);
+        }
     }
 
     public void saveGeneratedModel(Model3DGenerationResponse response) {

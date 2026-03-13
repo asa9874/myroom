@@ -113,6 +113,25 @@ public class Model3DController implements Model3DApi {
         return ResponseEntity.ok(fileUrl);
     }
 
+    @PostMapping(value = "/upload-multi", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<String> uploadMultiModel3DFile(
+            @RequestPart(value = "images", required = true) List<MultipartFile> imageFiles,
+            @RequestParam(value = "furniture_type", required = true) String furnitureType,
+            @RequestParam(value = "name", required = true) String name,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "is_shared", required = false) Boolean isShared,
+            @AuthenticationPrincipal CustomUserDetails member) {
+        Model3DUploadRequestDto uploadRequestDto = new Model3DUploadRequestDto(
+            FurnitureCategory.fromString(furnitureType),
+            name,
+            description,
+            isShared
+        );
+        String fileUrl = model3DService.uploadModel3DMultiFile(imageFiles, uploadRequestDto, member.getId());
+        return ResponseEntity.ok(fileUrl);
+    }
+
     @PostMapping(value = "/upload-simple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> uploadSimpleModel3DFile(

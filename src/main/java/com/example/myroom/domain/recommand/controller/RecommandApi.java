@@ -3,11 +3,16 @@ package com.example.myroom.domain.recommand.controller;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.myroom.domain.recommand.dto.response.RecommandHistoryResponseDto;
 import com.example.myroom.global.jwt.CustomUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -179,5 +184,34 @@ public interface RecommandApi {
             
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails member
+    );
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "내 추천 이력 조회 성공",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = Page.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "인증되지 않음",
+                content = @Content(schema = @Schema(hidden = true))
+            )
+        }
+    )
+    @Operation(
+        summary = "내 추천 이력 조회",
+        description = "현재 로그인한 사용자의 추천 이력(분석/추천 결과)을 최신순으로 페이지네이션 조회합니다.",
+        security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @GetMapping("/my")
+    ResponseEntity<Page<RecommandHistoryResponseDto>> getMyRecommandHistories(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails member,
+            @PageableDefault(size = 10) Pageable pageable
     );
 }

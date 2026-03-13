@@ -1,14 +1,31 @@
 package com.example.myroom.domain.recommand.service;
 
 import java.io.IOException;
+import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.image.ImageUploadService;
+import com.example.myroom.domain.member.model.Member;
+import com.example.myroom.domain.member.repository.MemberRepository;
+import com.example.myroom.domain.model3D.repository.Model3DRepository;
 import com.example.myroom.domain.recommand.dto.message.RecommandResponseMessage;
+import com.example.myroom.domain.recommand.dto.response.RecommandHistoryResponseDto;
 import com.example.myroom.domain.recommand.messaging.RecommandProducer;
+import com.example.myroom.domain.recommand.model.RecommandDetectedItem;
+import com.example.myroom.domain.recommand.model.RecommandHistory;
+import com.example.myroom.domain.recommand.model.RecommandRecommendation;
+import com.example.myroom.domain.recommand.model.RecommandResult;
+import com.example.myroom.domain.recommand.model.RecommandRoomAnalysis;
+import com.example.myroom.domain.recommand.repository.RecommandHistoryRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,10 +38,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RecommandService {
     
     private final ImageUploadService imageUploadService;
     private final RecommandProducer recommandProducer;
+    private final RecommandHistoryRepository recommandHistoryRepository;
+    private final MemberRepository memberRepository;
+    private final Model3DRepository model3DRepository;
+    private final ObjectMapper objectMapper;
     
     /**
      * 가구 추천 요청
@@ -78,9 +100,11 @@ public class RecommandService {
      * 
      * @param response AI 서버로부터 받은 추천 결과 응답
      */
+    @Transactional
     public void saveRecommandResult(RecommandResponseMessage response) {
+        RecommandResponseMessage.RecommendationData recommendation = response.getRecommendation();
         log.info("💾 추천 결과 DB 저장 시작: memberId={}, targetCategory={}", 
-            response.getMemberId(), response.getRecommendation().getTargetCategory());
+            response.getMemberId(), recommendation != null ? recommendation.getTargetCategory() : null);
 
         try {
             // 방 분석 정보 로깅
@@ -100,20 +124,8 @@ public class RecommandService {
                     response.getRecommendation().getResultCount());
                 log.info("🔍 검색 쿼리: {}", response.getRecommendation().getSearchQuery());
             }
-            
-            // TODO: 실제 DB 저장 로직 구현
-            // 1. RecommandHistory 테이블에 추천 기록 저장
-            // 2. RoomAnalysis 테이블에 방 분석 정보 저장
-            // 3. RecommendationResult 테이블에 추천 결과 저장
-            // 예시:
-            // RecommandHistory history = RecommandHistory.builder()
-            //     .memberId(response.getMemberId())
-            //     .style(response.getRoomAnalysis().getStyle())
-            //     .color(response.getRoomAnalysis().getColor())
-            //     .targetCategory(response.getRecommendation().getTargetCategory())
-            //     .resultCount(response.getRecommendation().getResultCount())
-            //     .build();
-            // recommandHistoryRepository.save(history);
+
+            persistRecommandHistory(response);
             
             log.info("✅ 추천 결과 DB 저장 성공: memberId={}", response.getMemberId());
             
@@ -136,21 +148,8 @@ public class RecommandService {
         try {
             // 실패 로그 기록
             log.warn("⚠️ 실패 상태: {}", response.getStatus());
-            
-            // TODO: 실패 처리 로직 구현
-            // 1. 실패 이유 분석 및 로깅
-            // 2. 재시도 큐에 추가 (자동 재시도 옵션)
-            // 3. 회원에게 실패 알림 전송
-            // 4. 관리자에게 에러 리포트 전송
-            // 5. 실패 통계 업데이트
-            
-            // 예시:
-            // FailureLog failureLog = FailureLog.builder()
-            //     .memberId(response.getMemberId())
-            //     .errorMessage(response.getStatus())
-            //     .timestamp(LocalDateTime.now())
-            //     .build();
-            // failureLogRepository.save(failureLog);
+
+            persistRecommandHistory(response);
             
             log.warn("⚠️ 이미지 URL: {}", response.getRoomAnalysis() != null ? response.getRoomAnalysis().getClass().getName() : "정보 없음");
             
@@ -171,5 +170,104 @@ public class RecommandService {
      */
     public void uploadRecommandFile(MultipartFile imageFile, Long memberId) {
         requestRecommandation(imageFile, "chair", 5, memberId);
+    }
+
+    public Page<RecommandHistoryResponseDto> getMyRecommandHistories(Long memberId, Pageable pageable) {
+        return recommandHistoryRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable)
+                .map(RecommandHistoryResponseDto::from);
+    }
+
+    private void persistRecommandHistory(RecommandResponseMessage response) {
+        Member member = memberRepository.findById(response.getMemberId())
+                .orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다. id=" + response.getMemberId()));
+
+        RecommandResponseMessage.RoomAnalysis roomAnalysis = response.getRoomAnalysis();
+        RecommandResponseMessage.RecommendationData recommendation = response.getRecommendation();
+
+        RecommandHistory history = RecommandHistory.builder()
+                .member(member)
+                .status(response.getStatus())
+                .responseTimestamp(response.getTimestamp())
+                .build();
+
+        if (roomAnalysis != null) {
+            RecommandRoomAnalysis analysis = RecommandRoomAnalysis.builder()
+                    .style(roomAnalysis.getStyle())
+                    .color(roomAnalysis.getColor())
+                    .material(roomAnalysis.getMaterial())
+                    .detectedCount(roomAnalysis.getDetectedCount())
+                    .build();
+
+            if (roomAnalysis.getDetectedFurniture() != null) {
+                roomAnalysis.getDetectedFurniture().stream()
+                        .filter(name -> name != null && !name.isBlank())
+                        .forEach(analysis::addDetectedFurniture);
+            }
+
+            if (roomAnalysis.getDetailedDetections() != null) {
+                for (RecommandResponseMessage.DetectedItem item : roomAnalysis.getDetailedDetections()) {
+                    RecommandDetectedItem detectedItem = RecommandDetectedItem.builder()
+                            .name(item.getName())
+                            .confidence(item.getConfidence())
+                            .bboxX1(readBboxValue(item.getBbox(), 0, 0))
+                            .bboxY1(readBboxValue(item.getBbox(), 0, 1))
+                            .bboxX2(readBboxValue(item.getBbox(), 1, 0))
+                            .bboxY2(readBboxValue(item.getBbox(), 1, 1))
+                            .build();
+                    analysis.addDetailedDetection(detectedItem);
+                }
+            }
+
+            history.assignRoomAnalysis(analysis);
+        }
+
+        if (recommendation != null) {
+            RecommandRecommendation recommandRecommendation = RecommandRecommendation.builder()
+                    .targetCategory(recommendation.getTargetCategory())
+                    .reasoning(recommendation.getReasoning())
+                    .searchQuery(recommendation.getSearchQuery())
+                    .resultCount(recommendation.getResultCount())
+                    .build();
+
+            if (recommendation.getResults() != null) {
+                recommendation.getResults().forEach(result -> {
+                    RecommandResult recommandResult = RecommandResult.builder()
+                            .rankIndex(result.getRank())
+                            .score(result.getScore())
+                            .metadataJson(toJson(result.getMetadata()))
+                            .build();
+
+                    if (result.getModel3dId() != null) {
+                        model3DRepository.findById(result.getModel3dId())
+                                .ifPresent(recommandResult::addModel3D);
+                    }
+
+                    recommandRecommendation.addResult(recommandResult);
+                });
+            }
+
+            history.assignRecommendation(recommandRecommendation);
+        }
+
+        recommandHistoryRepository.save(history);
+    }
+
+    private Double readBboxValue(List<List<Double>> bbox, int pointIndex, int axisIndex) {
+        if (bbox == null || bbox.size() <= pointIndex) {
+            return null;
+        }
+        List<Double> point = bbox.get(pointIndex);
+        if (point == null || point.size() <= axisIndex) {
+            return null;
+        }
+        return point.get(axisIndex);
+    }
+
+    private String toJson(Object value) {
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("추천 결과 JSON 직렬화에 실패했습니다.", e);
+        }
     }
 }

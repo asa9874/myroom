@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
@@ -33,7 +34,11 @@ public class S3ImageUploadService {
     private static final List<String> ALLOWED_MIME_TYPES = List.of("image/jpeg", "image/jpg", "image/png", "image/webp");
 
     public String uploadImage(MultipartFile file) throws IOException {
-        return uploadModel3DImages(file).thumbnailUrl();
+        return uploadResizedPng(file, 512, "images/thumbnails/");
+    }
+
+    public String uploadProfileImage(MultipartFile file) throws IOException {
+        return uploadResizedPng(file, 512, "images/profile/");
     }
 
     public Model3DImageUrls uploadModel3DImages(MultipartFile file) throws IOException {
@@ -76,6 +81,22 @@ public class S3ImageUploadService {
         return "https://" + bucketName + ".s3.amazonaws.com/" + key;
     }
 
+    private String uploadResizedPng(MultipartFile file, int canvasSize, String directory) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IOException("Image file is empty");
+        }
+        validateImageFile(file);
+
+        try {
+            byte[] imageBytes = processImageFor3D(file, canvasSize);
+            String key = directory + System.currentTimeMillis() + "_" + UUID.randomUUID() + "_" + canvasSize + ".png";
+            return uploadPngBytes(key, imageBytes);
+        } catch (IOException e) {
+            log.error("File upload failed", e);
+            throw new IOException("Image Upload Fail", e);
+        }
+    }
+
     private void validateImageFile(MultipartFile file) {
         // 1. MIME 타입 화이트리스트 검증 (JPG, PNG만 허용)
         String contentType = file.getContentType();
@@ -100,11 +121,6 @@ public class S3ImageUploadService {
         }
     }
 
-    private String getFileExtension(String fileName) {
-        int index = fileName.lastIndexOf('.');
-        return index > 0 ? fileName.substring(index + 1) : "";
-    }
-    
     private byte[] processImageFor3D(MultipartFile originalFile, int canvasSize) throws IOException {
         BufferedImage originalImage = ImageIO.read(originalFile.getInputStream());
         if (originalImage == null) {

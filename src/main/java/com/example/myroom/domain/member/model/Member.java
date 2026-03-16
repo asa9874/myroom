@@ -21,6 +21,7 @@ public class Member {
     private String name;
     private String email;
     private String password;
+    private String profileImageUrl;
 
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
@@ -40,6 +41,10 @@ public class Member {
     public void update(String name, String email) {
         this.name = name;
         this.email = email;
+    }
+
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 
     public void updateRole(Role role) {

@@ -2,6 +2,7 @@ package com.example.myroom.domain.member.controller;
 
 import java.util.List;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.member.dto.request.MemberUpdateRequestDto;
 import com.example.myroom.domain.member.dto.response.MemberResponseDto;
@@ -39,7 +42,7 @@ public interface MemberApi {
                     schema = @Schema(implementation = MemberResponseDto.class),
                     examples = @ExampleObject(
                         name = "회원 조회 성공 응답",
-                        value = "{\"id\": 1, \"username\": \"홍길동\", \"email\": \"user@example.com\"}"
+                        value = "{\"id\": 1, \"username\": \"홍길동\", \"email\": \"user@example.com\", \"profile_image_url\": null}"
                     )
                 )
             ),
@@ -66,7 +69,8 @@ public interface MemberApi {
             {
                 "id": 1,
                 "username": "홍길동",
-                "email": "user@example.com"
+                "email": "user@example.com",
+                "profile_image_url": null
             }
             ```
             """
@@ -91,7 +95,7 @@ public interface MemberApi {
                     schema = @Schema(implementation = MemberResponseDto.class),
                     examples = @ExampleObject(
                         name = "현재 사용자 조회 응답",
-                        value = "{\"id\": 1, \"username\": \"홍길동\", \"email\": \"user@example.com\"}"
+                        value = "{\"id\": 1, \"username\": \"홍길동\", \"email\": \"user@example.com\", \"profile_image_url\": null}"
                     )
                 )
             ),
@@ -120,7 +124,8 @@ public interface MemberApi {
             {
                 "id": 1,
                 "username": "홍길동",
-                "email": "user@example.com"
+                "email": "user@example.com",
+                "profile_image_url": null
             }
             ```
             """
@@ -142,7 +147,7 @@ public interface MemberApi {
                     array = @ArraySchema(schema = @Schema(implementation = MemberResponseDto.class)),
                     examples = @ExampleObject(
                         name = "전체 회원 목록 응답",
-                        value = "[{\"id\": 1, \"username\": \"홍길동\", \"email\": \"user1@example.com\"}, {\"id\": 2, \"username\": \"김철수\", \"email\": \"user2@example.com\"}]"
+                        value = "[{\"id\": 1, \"username\": \"홍길동\", \"email\": \"user1@example.com\", \"profile_image_url\": null}, {\"id\": 2, \"username\": \"김철수\", \"email\": \"user2@example.com\", \"profile_image_url\": \"https://example-bucket.s3.amazonaws.com/images/profile/sample_512.png\"}]"
                     )
                 )
             )
@@ -159,12 +164,14 @@ public interface MemberApi {
                 {
                     "id": 1,
                     "username": "홍길동",
-                    "email": "user1@example.com"
+                    "email": "user1@example.com",
+                    "profile_image_url": null
                 },
                 {
                     "id": 2,
                     "username": "김철수",
-                    "email": "user2@example.com"
+                    "email": "user2@example.com",
+                    "profile_image_url": "https://example-bucket.s3.amazonaws.com/images/profile/sample_512.png"
                 }
             ]
             ```
@@ -183,7 +190,7 @@ public interface MemberApi {
                     schema = @Schema(implementation = MemberResponseDto.class),
                     examples = @ExampleObject(
                         name = "수정 성공 응답",
-                        value = "{\"id\": 1, \"username\": \"김철수\", \"email\": \"newuser@example.com\"}"
+                        value = "{\"id\": 1, \"username\": \"김철수\", \"email\": \"newuser@example.com\", \"profile_image_url\": null}"
                     )
                 )
             ),
@@ -231,7 +238,8 @@ public interface MemberApi {
             {
                 "id": 1,
                 "username": "김철수",
-                "email": "newuser@example.com"
+                "email": "newuser@example.com",
+                "profile_image_url": null
             }
             ```
             """
@@ -250,6 +258,51 @@ public interface MemberApi {
                 required = true
             )
             @Valid @RequestBody MemberUpdateRequestDto updateRequestDto
+    );
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "프로필 이미지 수정 성공",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = MemberResponseDto.class),
+                    examples = @ExampleObject(
+                        name = "프로필 이미지 수정 성공 응답",
+                        value = "{\"id\": 1, \"username\": \"홍길동\", \"email\": \"user@example.com\", \"profile_image_url\": \"https://example-bucket.s3.amazonaws.com/images/profile/1742111111111_sample_512.png\"}"
+                    )
+                )
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 또는 이미지 업로드 실패",
+                content = @Content(schema = @Schema(hidden = true))
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "인증되지 않음",
+                content = @Content(schema = @Schema(hidden = true))
+            )
+        }
+    )
+    @Operation(
+        summary = "내 프로필 이미지 수정",
+        description = """
+            현재 로그인한 사용자의 프로필 이미지를 수정합니다.
+
+            - 요청 형식은 multipart/form-data 입니다.
+            - image 파트에 업로드할 이미지를 넣어야 합니다.
+            - 업로드 이미지는 512x512 PNG로 리사이징되어 저장됩니다.
+            """,
+        security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @PutMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ResponseEntity<MemberResponseDto> updateProfileImage(
+            @Parameter(description = "업로드할 프로필 이미지 파일", required = true)
+            @RequestPart("image") MultipartFile imageFile,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails member
     );
 
     @ApiResponses(

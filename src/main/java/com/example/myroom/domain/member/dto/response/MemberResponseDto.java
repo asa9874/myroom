@@ -29,13 +29,21 @@ public record MemberResponseDto(
         requiredMode = RequiredMode.REQUIRED,
         example = "user@example.com"
     )
-    String email
+    String email,
+
+    @Schema(
+        description = "회원 프로필 이미지 URL",
+        example = "https://example-bucket.s3.amazonaws.com/images/profile/1742111111111_512.png",
+        nullable = true
+    )
+    String profileImageUrl
 ) {
     public static MemberResponseDto from(Member member) {
         return new MemberResponseDto(
             member.getId(),
             member.getName(),
-            member.getEmail()
+            member.getEmail(),
+            member.getProfileImageUrl()
         );
     }
 } 

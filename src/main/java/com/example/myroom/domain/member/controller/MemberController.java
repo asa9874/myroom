@@ -2,6 +2,7 @@ package com.example.myroom.domain.member.controller;
 
 import java.util.List;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.member.dto.request.MemberUpdateRequestDto;
 import com.example.myroom.domain.member.dto.response.MemberResponseDto;
@@ -55,6 +58,15 @@ public class MemberController implements MemberApi {
             @PathVariable(name = "memberId") Long memberId,
             @Valid @RequestBody MemberUpdateRequestDto updateRequestDto) {
         MemberResponseDto responseDto = memberService.updateMember(memberId, updateRequestDto);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @PutMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<MemberResponseDto> updateProfileImage(
+            @RequestPart("image") MultipartFile imageFile,
+            @AuthenticationPrincipal CustomUserDetails member) {
+        MemberResponseDto responseDto = memberService.updateProfileImage(member.getId(), imageFile);
         return ResponseEntity.ok(responseDto);
     }
 

@@ -1,6 +1,8 @@
 package com.example.myroom.domain.post.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.myroom.domain.image.ImageUploadService;
 import com.example.myroom.domain.image.S3ImageUploadService;
 import com.example.myroom.domain.member.model.Member;
 import com.example.myroom.domain.member.repository.MemberRepository;
@@ -36,31 +37,25 @@ public class PostService {
     private final MemberRepository memberRepository;
     private final Model3DRepository model3DRepository;
     private final PostLikeRepository postLikeRepository;
-    private final ImageUploadService imageUploadService;
     private final S3ImageUploadService s3ImageUploadService;
 
     @Transactional
-    public PostResponseDto createPost(PostCreateRequestDto requestDto, Long memberId, MultipartFile imageFile) {
+    public PostResponseDto createPost(PostCreateRequestDto requestDto, Long memberId, List<MultipartFile> imageFiles) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 " + memberId + "를 찾을 수 없습니다."));
 
-        Model3D model3D = model3DRepository.findById(requestDto.model3dId())
+        Model3D model3D = null;
+        if (requestDto.model3dId() != null) {
+            model3D = model3DRepository.findById(requestDto.model3dId())
                 .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + requestDto.model3dId() + "를 찾을 수 없습니다."));
 
-        if (!isOwner(model3D.getCreatorId(), memberId)) {
+            if (!isOwner(model3D.getCreatorId(), memberId)) {
             throw new IllegalArgumentException("3D 모델에 접근할 권한이 없습니다. 본인이 생성한 3D 모델만 게시글에 첨부할 수 있습니다.");
-        }
-
-        // 이미지 업로드 (제공된 경우에만)
-        String imageUrl = null;
-        if (imageFile != null && !imageFile.isEmpty()) {
-            try {
-                //imageUrl = imageUploadService.uploadImage(imageFile);
-                imageUrl = s3ImageUploadService.uploadImage(imageFile);
-            } catch (IOException e) {
-                throw new RuntimeException("이미지 업로드 실패: " + e.getMessage());
             }
         }
+
+        List<String> imageUrls = uploadPostImages(imageFiles);
+        String imageUrl = imageUrls.isEmpty() ? null : imageUrls.get(0);
 
         Post post = Post.builder()
                 .member(member)
@@ -71,6 +66,7 @@ public class PostService {
                 .visibilityScope(
                         requestDto.visibilityScope() != null ? requestDto.visibilityScope() : VisibilityScope.PUBLIC)
                 .imageUrl(imageUrl)
+                .imageUrls(imageUrls)
                 .build();
 
         Post savedPost = postRepository
@@ -97,7 +93,7 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponseDto updatePost(Long postId, PostUpdateRequestDto requestDto, Long memberId, MultipartFile imageFile) {
+    public PostResponseDto updatePost(Long postId, PostUpdateRequestDto requestDto, Long memberId, List<MultipartFile> imageFiles, List<String> retainImageUrls) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 " + postId + "를 찾을 수 없습니다."));
 
@@ -105,22 +101,18 @@ public class PostService {
             throw new IllegalArgumentException("게시글을 수정할 권한이 없습니다.");
         }
 
-        Model3D model3D = model3DRepository.findById(requestDto.model3dId())
-                .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + requestDto.model3dId() + "를 찾을 수 없습니다."));
+        Model3D model3D = post.getModel3D();
+        if (requestDto.model3dId() != null) {
+            model3D = model3DRepository.findById(requestDto.model3dId())
+                    .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + requestDto.model3dId() + "를 찾을 수 없습니다."));
 
-        if (!isOwner(model3D.getCreatorId(), memberId)) {
-            throw new IllegalArgumentException("3D 모델에 접근할 권한이 없습니다. 본인이 생성한 3D 모델만 게시글에 첨부할 수 있습니다.");
-        }
-
-        // 이미지 업로드 (제공된 경우에만, 기존 URL 유지)
-        String imageUrl = null;
-        if (imageFile != null && !imageFile.isEmpty()) {
-            try {
-                imageUrl = imageUploadService.uploadImage(imageFile);
-            } catch (IOException e) {
-                throw new RuntimeException("이미지 업로드 실패: " + e.getMessage());
+            if (!isOwner(model3D.getCreatorId(), memberId)) {
+                throw new IllegalArgumentException("3D 모델에 접근할 권한이 없습니다. 본인이 생성한 3D 모델만 게시글에 첨부할 수 있습니다.");
             }
         }
+
+        List<String> imageUrls = mergePostImages(post, retainImageUrls, imageFiles);
+        String imageUrl = imageUrls.isEmpty() ? null : imageUrls.get(0);
 
         post.update(
                 requestDto.title(),
@@ -128,7 +120,8 @@ public class PostService {
                 requestDto.category(),
                 requestDto.visibilityScope(),
                 model3D,
-                imageUrl);
+                imageUrl,
+                imageUrls);
 
         Post updatedPost = postRepository.save(post);
         log.info("게시글이 수정되었습니다. ID: {}, 제목: {}", updatedPost.getId(), updatedPost.getTitle());
@@ -189,5 +182,72 @@ public class PostService {
 
     private boolean isOwner(Long modelCreatorId, Long memberId) {
         return modelCreatorId.equals(memberId);
+    }
+
+    private List<String> mergePostImages(Post post, List<String> retainImageUrls, List<MultipartFile> newImageFiles) {
+        List<String> currentImageUrls = getCurrentImageUrls(post);
+        List<String> uploadedImageUrls = uploadPostImages(newImageFiles);
+
+        List<String> retained = retainImageUrls == null ? new ArrayList<>() : new ArrayList<>(retainImageUrls);
+
+        for (String retainImageUrl : retained) {
+            if (!currentImageUrls.contains(retainImageUrl)) {
+                throw new IllegalArgumentException("기존 게시글에 없는 이미지 URL이 포함되어 있습니다.");
+            }
+        }
+
+        List<String> merged = new ArrayList<>(retained);
+        merged.addAll(uploadedImageUrls);
+
+        if (merged.size() > 4) {
+            throw new IllegalArgumentException("게시글 이미지는 최대 4장까지 유지/업로드할 수 있습니다.");
+        }
+
+        return merged;
+    }
+
+    private List<String> getCurrentImageUrls(Post post) {
+        if (post.getImageUrls() != null && !post.getImageUrls().isEmpty()) {
+            return new ArrayList<>(post.getImageUrls());
+        }
+        if (post.getImageUrl() != null) {
+            return new ArrayList<>(List.of(post.getImageUrl()));
+        }
+        return new ArrayList<>();
+    }
+
+    private List<String> uploadPostImages(List<MultipartFile> imageFiles) {
+        validateImageFiles(imageFiles);
+
+        List<String> imageUrls = new ArrayList<>();
+        if (imageFiles == null || imageFiles.isEmpty()) {
+            return imageUrls;
+        }
+
+        for (MultipartFile imageFile : imageFiles) {
+            try {
+                imageUrls.add(s3ImageUploadService.uploadImage(imageFile));
+            } catch (IOException e) {
+                throw new RuntimeException("이미지 업로드 실패: " + e.getMessage(), e);
+            }
+        }
+
+        return imageUrls;
+    }
+
+    private void validateImageFiles(List<MultipartFile> imageFiles) {
+        if (imageFiles == null || imageFiles.isEmpty()) {
+            return;
+        }
+
+        if (imageFiles.size() > 4) {
+            throw new IllegalArgumentException("게시글 이미지는 최대 4장까지 업로드할 수 있습니다.");
+        }
+
+        for (MultipartFile imageFile : imageFiles) {
+            if (imageFile == null || imageFile.isEmpty()) {
+                throw new IllegalArgumentException("빈 이미지 파일은 업로드할 수 없습니다.");
+            }
+        }
     }
 }

@@ -47,8 +47,8 @@ public record PostCreateRequestDto(
         VisibilityScope visibilityScope,
 
         @Schema(
-            description = "3D 모델 ID",
-            requiredMode = RequiredMode.REQUIRED,
+            description = "3D 모델 ID (선택값)",
+            requiredMode = RequiredMode.NOT_REQUIRED,
             example = "1"
         )        
         @JsonProperty("model3d_id")        

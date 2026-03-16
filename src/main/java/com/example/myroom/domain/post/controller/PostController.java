@@ -1,5 +1,7 @@
 package com.example.myroom.domain.post.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -38,15 +40,15 @@ public class PostController implements PostApi {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<PostResponseDto> createPost(
-            @RequestPart(value = "image", required = false) MultipartFile imageFile,
+            @RequestPart(value = "images", required = false) List<MultipartFile> imageFiles,
             @RequestParam(value = "title") String title,
             @RequestParam(value = "content") String content,
             @RequestParam(value = "category") Category category,
             @RequestParam(value = "visibility_scope", required = false) VisibilityScope visibilityScope,
-            @RequestParam(value = "model3d_id") Long model3dId,
+            @RequestParam(value = "model3d_id", required = false) Long model3dId,
             @AuthenticationPrincipal CustomUserDetails member) {
         PostCreateRequestDto requestDto = new PostCreateRequestDto(title, content, category, visibilityScope, model3dId);
-        PostResponseDto responseDto = postService.createPost(requestDto, member.getId(), imageFile);
+        PostResponseDto responseDto = postService.createPost(requestDto, member.getId(), imageFiles);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
@@ -63,7 +65,8 @@ public class PostController implements PostApi {
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<PostResponseDto> updatePost(
             @PathVariable(name = "postId") Long postId,
-            @RequestPart(value = "image", required = false) MultipartFile imageFile,
+            @RequestPart(value = "images", required = false) List<MultipartFile> imageFiles,
+            @RequestParam(value = "retain_image_urls", required = false) List<String> retainImageUrls,
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "content", required = false) String content,
             @RequestParam(value = "category", required = false) Category category,
@@ -71,7 +74,7 @@ public class PostController implements PostApi {
             @RequestParam(value = "model3d_id", required = false) Long model3dId,
             @AuthenticationPrincipal CustomUserDetails member) {
         PostUpdateRequestDto requestDto = new PostUpdateRequestDto(title, content, category, visibilityScope, model3dId);
-        PostResponseDto responseDto = postService.updatePost(postId, requestDto, member.getId(), imageFile);
+        PostResponseDto responseDto = postService.updatePost(postId, requestDto, member.getId(), imageFiles, retainImageUrls);
         return ResponseEntity.ok(responseDto);
     }
 

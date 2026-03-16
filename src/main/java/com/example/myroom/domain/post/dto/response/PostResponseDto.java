@@ -1,6 +1,7 @@
 package com.example.myroom.domain.post.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.example.myroom.domain.post.model.Category;
 import com.example.myroom.domain.post.model.Post;
@@ -55,6 +56,13 @@ public record PostResponseDto(
             example = "https://bucket.s3.amazonaws.com/images/photo.png"
         )
         String imageUrl,
+
+        @Schema(
+            description = "게시글 이미지 URL 목록",
+            requiredMode = RequiredMode.NOT_REQUIRED,
+            example = "[\"https://bucket.s3.amazonaws.com/images/photo1.png\", \"https://bucket.s3.amazonaws.com/images/photo2.png\"]"
+        )
+        List<String> imageUrls,
 
         @Schema(
             description = "게시글 제목",
@@ -113,6 +121,11 @@ public record PostResponseDto(
         LocalDateTime updatedAt
 ) {
     public static PostResponseDto from(Post post, long likeCount) {
+        List<String> imageUrls = post.getImageUrls();
+        if ((imageUrls == null || imageUrls.isEmpty()) && post.getImageUrl() != null) {
+            imageUrls = List.of(post.getImageUrl());
+        }
+
         return new PostResponseDto(
                 post.getId(),
                 post.getMember().getId(),
@@ -120,6 +133,7 @@ public record PostResponseDto(
                 post.getModel3D() != null ? post.getModel3D().getId() : null,
                 post.getModel3D() != null ? post.getModel3D().getName() : null,
                 post.getImageUrl(),
+                imageUrls,
                 post.getTitle(),
                 post.getContent(),
                 post.getCategory(),

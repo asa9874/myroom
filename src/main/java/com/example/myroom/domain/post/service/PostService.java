@@ -2,7 +2,9 @@ package com.example.myroom.domain.post.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.myroom.domain.image.S3ImageUploadService;
 import com.example.myroom.domain.member.model.Member;
 import com.example.myroom.domain.member.repository.MemberRepository;
+import com.example.myroom.domain.comment.repository.CommentRepository;
 import com.example.myroom.domain.model3D.model.Model3D;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
 import com.example.myroom.domain.post.dto.request.PostCreateRequestDto;
@@ -37,6 +40,7 @@ public class PostService {
     private final MemberRepository memberRepository;
     private final Model3DRepository model3DRepository;
     private final PostLikeRepository postLikeRepository;
+    private final CommentRepository commentRepository;
     private final S3ImageUploadService s3ImageUploadService;
 
     @Transactional
@@ -73,7 +77,7 @@ public class PostService {
                 .save(post);
         log.info("게시글이 생성되었습니다. ID: {}, 제목: {}", savedPost.getId(), savedPost.getTitle());
 
-        return PostResponseDto.from(savedPost, 0L);
+        return PostResponseDto.from(savedPost, 0L, 0L);
     }
 
     @Transactional
@@ -89,7 +93,8 @@ public class PostService {
         post.incrementViewCount(); // 조회수 증가
         postRepository.save(post); // 변경된 조회수 저장
         long likeCount = postLikeRepository.countByPostId(postId);
-        return PostResponseDto.from(post, likeCount);
+        long commentCount = commentRepository.countByPostId(postId);
+        return PostResponseDto.from(post, likeCount, commentCount);
     }
 
     @Transactional
@@ -127,7 +132,8 @@ public class PostService {
         log.info("게시글이 수정되었습니다. ID: {}, 제목: {}", updatedPost.getId(), updatedPost.getTitle());
 
         long likeCount = postLikeRepository.countByPostId(postId);
-        return PostResponseDto.from(updatedPost, likeCount);
+        long commentCount = commentRepository.countByPostId(postId);
+        return PostResponseDto.from(updatedPost, likeCount, commentCount);
     }
 
     @Transactional
@@ -145,18 +151,18 @@ public class PostService {
 
     public Page<PostResponseDto> getPublicPosts(Pageable pageable) {
         Page<Post> posts = postRepository.findByVisibilityScopeOrderByCreatedAtDesc(VisibilityScope.PUBLIC, pageable);
-        return posts.map(post -> PostResponseDto.from(post, postLikeRepository.countByPostId(post.getId())));
+        return mapPostPageWithCounts(posts);
     }
 
     public Page<PostResponseDto> getPostsByCategory(Category category, Pageable pageable) {
         Page<Post> posts = postRepository.findByVisibilityScopeAndCategoryOrderByCreatedAtDesc(
                 VisibilityScope.PUBLIC, category, pageable);
-        return posts.map(post -> PostResponseDto.from(post, postLikeRepository.countByPostId(post.getId())));
+        return mapPostPageWithCounts(posts);
     }
 
     public Page<PostResponseDto> getMyPosts(Long memberId, Pageable pageable) {
         Page<Post> posts = postRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable);
-        return posts.map(post -> PostResponseDto.from(post, postLikeRepository.countByPostId(post.getId())));
+        return mapPostPageWithCounts(posts);
     }
 
     public Page<PostResponseDto> searchPosts(String title, Category category, Long memberId, boolean isMyPost,
@@ -177,7 +183,45 @@ public class PostService {
             }
         }
 
-        return posts.map(post -> PostResponseDto.from(post, postLikeRepository.countByPostId(post.getId())));
+        return mapPostPageWithCounts(posts);
+    }
+
+    private Page<PostResponseDto> mapPostPageWithCounts(Page<Post> posts) {
+        List<Long> postIds = posts.getContent().stream()
+                .map(Post::getId)
+                .toList();
+
+        Map<Long, Long> likeCountMap = getLikeCountMap(postIds);
+        Map<Long, Long> commentCountMap = getCommentCountMap(postIds);
+
+        return posts.map(post -> PostResponseDto.from(
+                post,
+                likeCountMap.getOrDefault(post.getId(), 0L),
+                commentCountMap.getOrDefault(post.getId(), 0L)));
+    }
+
+    private Map<Long, Long> getLikeCountMap(List<Long> postIds) {
+        Map<Long, Long> likeCountMap = new HashMap<>();
+        if (postIds.isEmpty()) {
+            return likeCountMap;
+        }
+
+        for (Object[] row : postLikeRepository.countByPostIds(postIds)) {
+            likeCountMap.put((Long) row[0], (Long) row[1]);
+        }
+        return likeCountMap;
+    }
+
+    private Map<Long, Long> getCommentCountMap(List<Long> postIds) {
+        Map<Long, Long> commentCountMap = new HashMap<>();
+        if (postIds.isEmpty()) {
+            return commentCountMap;
+        }
+
+        for (Object[] row : commentRepository.countByPostIds(postIds)) {
+            commentCountMap.put((Long) row[0], (Long) row[1]);
+        }
+        return commentCountMap;
     }
 
     private boolean isOwner(Long modelCreatorId, Long memberId) {

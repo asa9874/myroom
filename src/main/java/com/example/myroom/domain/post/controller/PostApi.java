@@ -60,6 +60,8 @@ public interface PostApi {
                             "content": "거실에 어울릴 만한 모던한 의자를 찾고 있습니다.",
                             "category": "QUESTION",
                             "visibility_scope": "PUBLIC",
+                            "like_count": 0,
+                            "comment_count": 0,
                             "created_at": "2024-01-15T10:30:00",
                             "updated_at": "2024-01-15T10:30:00"
                         }

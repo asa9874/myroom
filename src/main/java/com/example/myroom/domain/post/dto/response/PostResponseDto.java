@@ -107,6 +107,13 @@ public record PostResponseDto(
         Long likeCount,
 
         @Schema(
+            description = "댓글수",
+            requiredMode = RequiredMode.REQUIRED,
+            example = "8"
+        )
+        Long commentCount,
+
+        @Schema(
             description = "게시글 작성 일시",
             requiredMode = RequiredMode.REQUIRED,
             example = "2024-01-15T10:30:00"
@@ -120,7 +127,7 @@ public record PostResponseDto(
         )
         LocalDateTime updatedAt
 ) {
-    public static PostResponseDto from(Post post, long likeCount) {
+    public static PostResponseDto from(Post post, long likeCount, long commentCount) {
         List<String> imageUrls = post.getImageUrls();
         if ((imageUrls == null || imageUrls.isEmpty()) && post.getImageUrl() != null) {
             imageUrls = List.of(post.getImageUrl());
@@ -140,6 +147,7 @@ public record PostResponseDto(
                 post.getVisibilityScope(),
                 post.getViewCount() != null ? post.getViewCount() : 0L,
                 likeCount,
+                commentCount,
                 post.getCreatedAt(),
                 post.getUpdatedAt()
         );

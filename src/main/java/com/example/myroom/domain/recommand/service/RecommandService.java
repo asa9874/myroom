@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.image.ImageUploadService;
+import com.example.myroom.domain.image.S3ImageUploadService;
 import com.example.myroom.domain.member.model.Member;
 import com.example.myroom.domain.member.repository.MemberRepository;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
@@ -43,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RecommandService {
     
     private final ImageUploadService imageUploadService;
+    private final S3ImageUploadService s3ImageUploadService;
     private final RecommandProducer recommandProducer;
     private final RecommandHistoryRepository recommandHistoryRepository;
     private final MemberRepository memberRepository;
@@ -71,7 +73,8 @@ public class RecommandService {
         String imageUrl;
         try {
             // 1. 이미지 파일 저장
-            imageUrl = imageUploadService.uploadImage(imageFile);
+            //imageUrl = imageUploadService.uploadImage(imageFile);
+            imageUrl = s3ImageUploadService.uploadImage(imageFile);
             log.info("✅ 이미지 저장 완료: memberId={}, imageUrl={}", memberId, imageUrl);
             
         } catch (IOException e) {

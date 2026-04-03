@@ -274,14 +274,38 @@ public class RecommandService {
     }
 
     private Double readBboxValue(List<List<Double>> bbox, int pointIndex, int axisIndex) {
-        if (bbox == null || bbox.size() <= pointIndex) {
+        if (bbox == null || bbox.isEmpty()) {
             return null;
         }
-        List<Double> point = bbox.get(pointIndex);
-        if (point == null || point.size() <= axisIndex) {
+
+        // 기본 포맷: [[x1, y1], [x2, y2]]
+        if (bbox.size() > pointIndex) {
+            List<Double> point = bbox.get(pointIndex);
+            if (point != null && point.size() > axisIndex) {
+                return point.get(axisIndex);
+            }
+        }
+
+        // 호환 포맷: [[x1, y1, x2, y2]]
+        List<Double> flattenedPoint = bbox.get(0);
+        if (flattenedPoint == null || flattenedPoint.size() < 4) {
             return null;
         }
-        return point.get(axisIndex);
+
+        if (pointIndex == 0 && axisIndex == 0) {
+            return flattenedPoint.get(0);
+        }
+        if (pointIndex == 0 && axisIndex == 1) {
+            return flattenedPoint.get(1);
+        }
+        if (pointIndex == 1 && axisIndex == 0) {
+            return flattenedPoint.get(2);
+        }
+        if (pointIndex == 1 && axisIndex == 1) {
+            return flattenedPoint.get(3);
+        }
+
+        return null;
     }
 
     private String toJson(Object value) {

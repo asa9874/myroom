@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
  * - 외부 AI 서버에서 받은 추천 분석 결과를 담는 메시지입니다.
  */
 @Schema(description = "AI 가구 추천 응답 메시지 - WebSocket을 통해 클라이언트로 전송되는 추천 결과")
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 @Builder
 @NoArgsConstructor
@@ -72,6 +73,7 @@ public class RecommandResponseMessage {
      * 방 분석 정보
      */
     @Schema(description = "방 분석 결과 - AI가 이미지에서 분석한 방의 스타일, 색상, 재질 및 감지된 가구 정보")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     @Data
     @Builder
     @NoArgsConstructor
@@ -121,6 +123,7 @@ public class RecommandResponseMessage {
      * 감지된 가구 항목
      */
     @Schema(description = "감지된 개별 가구 항목 정보")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     @Data
     @Builder
     @NoArgsConstructor
@@ -131,6 +134,14 @@ public class RecommandResponseMessage {
             example = "chair"
         )
         private String name;
+
+        @Schema(
+            description = "감지된 가구의 영문 이름 (옵션)",
+            example = "dining table"
+        )
+        @JsonProperty("name_en")
+        @JsonAlias("nameEn")
+        private String nameEn;
         
         @Schema(
             description = "감지 신뢰도 (0.0 ~ 1.0)", 
@@ -149,6 +160,7 @@ public class RecommandResponseMessage {
      * 추천 데이터
      */
     @Schema(description = "가구 추천 결과 데이터")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     @Data
     @Builder
     @NoArgsConstructor
@@ -192,6 +204,7 @@ public class RecommandResponseMessage {
      * 추천 결과 항목
      */
     @Schema(description = "개별 추천 가구 항목")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     @Data
     @Builder
     @NoArgsConstructor

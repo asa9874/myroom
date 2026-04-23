@@ -25,23 +25,24 @@ public class S3Service {
     private String bucketName;
 
     /**
-     * XML 파일을 S3에 업로드하고 URL을 반환합니다.
+     * 파일을 S3에 업로드하고 URL을 반환합니다.
      *
-     * @param file 업로드할 XML 파일
-     * @param prefix S3 저장 경로 prefix (예: "sessions/")
+     * @param file 업로드할 파일
+     * @param prefix S3 저장 경로 prefix (예: "room3d/images/")
      * @return 업로드된 파일의 S3 URL
      */
-    public String uploadXmlFile(MultipartFile file, String prefix) {
+    public String uploadFile(MultipartFile file, String prefix) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("파일이 비어있습니다.");
         }
 
+        String normalizedPrefix = normalizePrefix(prefix);
         String originalFilename = file.getOriginalFilename();
         String extension = originalFilename != null && originalFilename.contains(".")
                 ? originalFilename.substring(originalFilename.lastIndexOf("."))
                 : "";
 
-        String fileName = prefix + UUID.randomUUID() + extension;
+        String fileName = normalizedPrefix + UUID.randomUUID() + extension;
 
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
@@ -58,6 +59,22 @@ public class S3Service {
             log.error("S3 파일 업로드 실패: {}", e.getMessage(), e);
             throw new RuntimeException("파일 업로드에 실패했습니다.", e);
         }
+    }
+
+    /**
+     * XML 파일을 S3에 업로드하고 URL을 반환합니다.
+     *
+     * @param file 업로드할 XML 파일
+     * @param prefix S3 저장 경로 prefix (예: "sessions/")
+     * @return 업로드된 파일의 S3 URL
+     */
+    public String uploadXmlFile(MultipartFile file, String prefix) {
+        String originalFilename = file != null ? file.getOriginalFilename() : null;
+        if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".xml")) {
+            throw new IllegalArgumentException("XML 파일만 업로드 가능합니다.");
+        }
+
+        return uploadFile(file, prefix);
     }
 
     /**
@@ -87,5 +104,17 @@ public class S3Service {
 
     private String extractFileNameFromUrl(String fileUrl) {
         return fileUrl.substring(fileUrl.indexOf(bucketName) + bucketName.length() + 1);
+    }
+
+    private String normalizePrefix(String prefix) {
+        if (prefix == null || prefix.isBlank()) {
+            return "";
+        }
+
+        if (prefix.endsWith("/")) {
+            return prefix;
+        }
+
+        return prefix + "/";
     }
 }

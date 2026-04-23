@@ -53,6 +53,19 @@ public class RabbitConfig {
     // Routing Key: 추천 결과 응답 메시지용 라우팅 키
     public static final String RECOMMAND_RESPONSE_ROUTING_KEY = "recommand.response";
 
+    // ===== Room3D 관련 설정 =====
+    // Exchange: Room3D 요청/응답 메시지를 배정하는 교환기
+    public static final String ROOM3D_EXCHANGE = "room3d.exchange";
+    // Queue: Room3D 생성 요청 메시지를 받는 큐
+    public static final String ROOM3D_QUEUE = "room3d.request.queue";
+    // Routing Key: Room3D 생성 요청 메시지용 라우팅 키
+    public static final String ROOM3D_ROUTING_KEY = "room3d.request";
+
+    // Queue: Room3D 처리 결과 응답 메시지를 받는 큐
+    public static final String ROOM3D_RESPONSE_QUEUE = "room3d.response.queue";
+    // Routing Key: Room3D 처리 결과 응답 메시지용 라우팅 키
+    public static final String ROOM3D_RESPONSE_ROUTING_KEY = "room3d.response";
+
     /**
      * 메시지 컨버터 설정
      * - RabbitMQ는 기본적으로 byte 배열로 메시지를 전송합니다.
@@ -229,5 +242,53 @@ public class RabbitConfig {
         return BindingBuilder.bind(recommandResponseQueue)
                 .to(recommandExchange)
                 .with(RECOMMAND_RESPONSE_ROUTING_KEY);
+    }
+
+    // ===== Room3D 관련 Bean 설정 =====
+
+    /**
+     * Room3D Topic Exchange 생성
+     */
+    @Bean
+    public TopicExchange room3dExchange() {
+        return new TopicExchange(ROOM3D_EXCHANGE, true, false);
+    }
+
+    /**
+     * Room3D 요청 Queue 생성
+     */
+    @Bean
+    public Queue room3dQueue() {
+        return new Queue(ROOM3D_QUEUE, true);
+    }
+
+    /**
+     * Room3D 요청 Binding 설정
+     */
+    @Bean
+    public Binding room3dBinding(@Qualifier("room3dQueue") Queue room3dQueue,
+                                  @Qualifier("room3dExchange") TopicExchange room3dExchange) {
+        return BindingBuilder.bind(room3dQueue)
+                .to(room3dExchange)
+                .with(ROOM3D_ROUTING_KEY);
+    }
+
+    /**
+     * Room3D 응답 Queue 생성
+     */
+    @Bean
+    public Queue room3dResponseQueue() {
+        return new Queue(ROOM3D_RESPONSE_QUEUE, true);
+    }
+
+    /**
+     * Room3D 응답 Binding 설정
+     */
+    @Bean
+    public Binding room3dResponseBinding(@Qualifier("room3dResponseQueue") Queue room3dResponseQueue,
+                                          @Qualifier("room3dExchange") TopicExchange room3dExchange) {
+        return BindingBuilder.bind(room3dResponseQueue)
+                .to(room3dExchange)
+                .with(ROOM3D_RESPONSE_ROUTING_KEY);
     }
 }

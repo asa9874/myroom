@@ -1,16 +1,21 @@
 package com.example.myroom.domain.model3D.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.model3D.dto.request.ModelDimensionsCreateRequestDto;
 import com.example.myroom.domain.model3D.dto.request.ModelDimensionsUpdateRequestDto;
 import com.example.myroom.domain.model3D.dto.response.ModelDimensionsResponseDto;
+import com.example.myroom.global.jwt.CustomUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -185,6 +190,50 @@ public interface ModelDimensionsApi {
                 required = true
             )
             @Valid @RequestBody ModelDimensionsCreateRequestDto createRequestDto
+    );
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "치수 이미지 분석 요청 성공",
+                content = @Content(
+                    mediaType = "text/plain",
+                    examples = @ExampleObject(
+                        name = "요청 성공",
+                        value = "치수 분석 요청이 완료되었습니다. 결과는 WebSocket으로 전달됩니다."
+                    )
+                )
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 - 파일 누락 또는 비이미지 파일",
+                content = @Content(schema = @Schema(hidden = true))
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "3D 모델을 찾을 수 없음",
+                content = @Content(schema = @Schema(hidden = true))
+            )
+        }
+    )
+    @Operation(
+        summary = "치수 이미지 분석 요청",
+        description = "가구 사이즈가 포함된 이미지를 업로드하면 S3 업로드 후 MQ를 통해 AI 서버에 치수 추출을 요청합니다. 결과는 WebSocket으로 전달됩니다.",
+        security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @PostMapping(value = "/request-by-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ResponseEntity<String> requestModelDimensionsByImage(
+            @Parameter(
+                description = "치수 추출을 요청할 3D 모델의 고유 ID",
+                required = true,
+                example = "1"
+            )
+            @PathVariable(name = "model3dId") Long model3dId,
+            @Parameter(description = "가구 사이즈가 포함된 이미지 파일", required = true)
+            @RequestPart(value = "image", required = true) MultipartFile imageFile,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails member
     );
 
     @ApiResponses(

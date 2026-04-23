@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  * ### 🔄 구독 토픽 목록
  * - `/topic/model3d/{userId}` - 개인 3D 모델 생성 알림
  * - `/topic/model3d/all` - 전체 3D 모델 생성 브로드캐스트
+ * - `/topic/model-dimensions/{userId}` - 개인 가구 치수 추출 결과
  * - `/topic/recommand/{userId}` - 개인 가구 추천 결과
  * - `/topic/test` - 테스트 메시지 응답
  * - `/topic/pong` - Ping/Pong 응답

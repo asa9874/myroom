@@ -28,6 +28,17 @@ public class RabbitConfig {
     // Routing Key: 3D 모델 생성 완료 메시지용 라우팅 키
     public static final String MODEL3D_RESPONSE_ROUTING_KEY = "model3d.response";
 
+    // ===== 3D 모델 치수 이미지 분석 설정 =====
+    // Queue: 치수 이미지 분석 요청 메시지를 받는 큐
+    public static final String MODEL3D_DIMENSIONS_REQUEST_QUEUE = "model3d.dimensions.request.queue";
+    // Routing Key: 치수 이미지 분석 요청 메시지용 라우팅 키
+    public static final String MODEL3D_DIMENSIONS_REQUEST_ROUTING_KEY = "model3d.dimensions.request";
+
+    // Queue: 치수 이미지 분석 결과 응답 메시지를 받는 큐
+    public static final String MODEL3D_DIMENSIONS_RESPONSE_QUEUE = "model3d.dimensions.response.queue";
+    // Routing Key: 치수 이미지 분석 결과 응답 메시지용 라우팅 키
+    public static final String MODEL3D_DIMENSIONS_RESPONSE_ROUTING_KEY = "model3d.dimensions.response";
+
     // ===== VectorDB 메타데이터 업데이트 설정 =====
     // Queue: VectorDB 메타데이터 업데이트 요청을 받는 큐
     public static final String MODEL3D_METADATA_UPDATE_QUEUE = "model3d.metadata.update.queue";
@@ -133,6 +144,46 @@ public class RabbitConfig {
         return BindingBuilder.bind(model3dResponseQueue)
                 .to(model3dExchange)
                 .with(MODEL3D_RESPONSE_ROUTING_KEY);
+    }
+
+    /**
+     * 3D 모델 치수 이미지 분석 요청 Queue 생성
+     */
+    @Bean
+    public Queue model3dDimensionsRequestQueue() {
+        return new Queue(MODEL3D_DIMENSIONS_REQUEST_QUEUE, true);
+    }
+
+    /**
+     * 3D 모델 치수 이미지 분석 요청 Binding 설정
+     */
+    @Bean
+    public Binding model3dDimensionsRequestBinding(
+            @Qualifier("model3dDimensionsRequestQueue") Queue model3dDimensionsRequestQueue,
+            @Qualifier("model3dExchange") TopicExchange model3dExchange) {
+        return BindingBuilder.bind(model3dDimensionsRequestQueue)
+                .to(model3dExchange)
+                .with(MODEL3D_DIMENSIONS_REQUEST_ROUTING_KEY);
+    }
+
+    /**
+     * 3D 모델 치수 이미지 분석 응답 Queue 생성
+     */
+    @Bean
+    public Queue model3dDimensionsResponseQueue() {
+        return new Queue(MODEL3D_DIMENSIONS_RESPONSE_QUEUE, true);
+    }
+
+    /**
+     * 3D 모델 치수 이미지 분석 응답 Binding 설정
+     */
+    @Bean
+    public Binding model3dDimensionsResponseBinding(
+            @Qualifier("model3dDimensionsResponseQueue") Queue model3dDimensionsResponseQueue,
+            @Qualifier("model3dExchange") TopicExchange model3dExchange) {
+        return BindingBuilder.bind(model3dDimensionsResponseQueue)
+                .to(model3dExchange)
+                .with(MODEL3D_DIMENSIONS_RESPONSE_ROUTING_KEY);
     }
 
     // ===== VectorDB 메타데이터 업데이트 Bean 설정 =====

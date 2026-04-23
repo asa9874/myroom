@@ -6,6 +6,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import com.example.myroom.domain.model3D.dto.message.Model3DDeleteMessage;
+import com.example.myroom.domain.model3D.dto.message.ModelDimensionsImageRequestMessage;
 import com.example.myroom.domain.model3D.dto.message.Model3DMetadataUpdateMessage;
 import com.example.myroom.domain.model3D.dto.message.Model3DUploadMessage;
 import com.example.myroom.domain.model3D.model.FurnitureCategory;
@@ -111,4 +112,25 @@ public class Model3DProducer {
                 message
         );
     }
+
+            /**
+             * 치수 이미지 분석 요청 메시지 발송
+             */
+            public void sendModelDimensionsImageRequestMessage(Long model3dId, Long memberId, String imageUrl) {
+            ModelDimensionsImageRequestMessage message = ModelDimensionsImageRequestMessage.builder()
+                .model3dId(model3dId)
+                .memberId(memberId)
+                .imageUrl(imageUrl)
+                .timestamp(System.currentTimeMillis())
+                .build();
+
+            log.info("📏 치수 이미지 분석 요청 메시지 발송: model3dId={}, memberId={}, imageUrl={}",
+                model3dId, memberId, imageUrl);
+
+            rabbitTemplate.convertAndSend(
+                RabbitConfig.MODEL3D_EXCHANGE,
+                RabbitConfig.MODEL3D_DIMENSIONS_REQUEST_ROUTING_KEY,
+                message
+            );
+            }
 }

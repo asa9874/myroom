@@ -3,7 +3,10 @@ package com.example.myroom.domain.model3D.messaging;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
+import com.example.myroom.domain.model3D.dto.message.ModelDimensionsImageResponseMessage;
+import com.example.myroom.domain.model3D.dto.response.ModelDimensionsResponseDto;
 import com.example.myroom.domain.model3D.dto.message.Model3DGenerationResponse;
+import com.example.myroom.domain.model3D.service.ModelDimensionsService;
 import com.example.myroom.domain.model3D.service.Model3DService;
 import com.example.myroom.domain.socket.service.WebSocketNotificationService;
 import com.example.myroom.global.config.RabbitConfig;
@@ -21,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Model3DConsumer {
 
     private final Model3DService model3DService;
+    private final ModelDimensionsService modelDimensionsService;
     private final WebSocketNotificationService webSocketNotificationService;
 
     /**
@@ -117,5 +121,46 @@ public class Model3DConsumer {
     private void logMessageReceived(Model3DGenerationResponse response) {
         log.info("📩 새로운 3D 모델 생성 완료 메시지 수신: memberId={}, status={}", 
             response.getMemberId(), response.getStatus());
+    }
+
+    /**
+     * 가구 치수 추출 결과 메시지 처리
+     */
+    @RabbitListener(queues = RabbitConfig.MODEL3D_DIMENSIONS_RESPONSE_QUEUE)
+    public void handleModelDimensionsResponse(ModelDimensionsImageResponseMessage response) {
+        log.info("========================================");
+        log.info("가구 치수 추출 결과 메시지 수신");
+        log.info("========================================");
+        log.info("회원 ID: {}", response.getMemberId());
+        log.info("모델 ID: {}", response.getModel3dId());
+        log.info("상태: {}", response.getStatus());
+        log.info("메시지: {}", response.getMessage());
+        log.info("========================================");
+
+        try {
+            if (response.getTimestamp() == null) {
+                response.setTimestamp(System.currentTimeMillis());
+            }
+
+            if (response.getStatus() == null || response.getStatus().isBlank()) {
+                response.setStatus(response.getDimensions() != null ? "SUCCESS" : "FAILED");
+            }
+
+            if ("SUCCESS".equalsIgnoreCase(response.getStatus())) {
+                ModelDimensionsResponseDto saved = modelDimensionsService.upsertDimensionsFromAiResponse(response);
+                log.info("✅ 치수 정보 저장 완료: model3dId={}, width={}, length={}, height={}",
+                        saved.model3dId(), saved.width(), saved.length(), saved.height());
+            } else {
+                log.warn("⚠️ 치수 분석 실패 응답 수신: model3dId={}, status={}, message={}",
+                        response.getModel3dId(), response.getStatus(), response.getMessage());
+            }
+
+            webSocketNotificationService.sendModelDimensionsNotification(response);
+            log.info("✅ 치수 분석 결과 WebSocket 전송 완료: memberId={}", response.getMemberId());
+
+        } catch (Exception e) {
+            log.error("❌ 치수 분석 결과 처리 실패: model3dId={}, error={}",
+                    response.getModel3dId(), e.getMessage(), e);
+        }
     }
 }

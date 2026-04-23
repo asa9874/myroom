@@ -3,6 +3,7 @@ package com.example.myroom.domain.socket.service;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import com.example.myroom.domain.model3D.dto.message.ModelDimensionsImageResponseMessage;
 import com.example.myroom.domain.model3D.dto.message.Model3DGenerationResponse;
 import com.example.myroom.domain.recommand.dto.message.RecommandResponseMessage;
 import com.example.myroom.domain.socket.dto.Model3DNotificationMessage;
@@ -24,7 +25,11 @@ import lombok.extern.slf4j.Slf4j;
  *    - 개인 알림: `/topic/recommand/{memberId}`
  *    - 메시지 타입: RecommandResponseMessage
  * 
- * 3. **커스텀 알림**
+ * 3. **가구 치수 추출 결과 알림**
+ *    - 개인 알림: `/topic/model-dimensions/{memberId}`
+ *    - 메시지 타입: ModelDimensionsImageResponseMessage
+ * 
+ * 4. **커스텀 알림**
  *    - 개인 알림: `/topic/notifications/{memberId}`
  *    - 메시지 타입: Model3DNotificationMessage
  * 
@@ -166,6 +171,31 @@ public class WebSocketNotificationService {
             
         } catch (Exception e) {
             log.error("❌ 추천 결과 알림 전송 실패: memberId={}, error={}", 
+                response.getMemberId(), e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 가구 치수 추출 결과 알림 전송
+     *
+     * @param response RabbitMQ로부터 받은 치수 분석 결과 응답
+     */
+    public void sendModelDimensionsNotification(ModelDimensionsImageResponseMessage response) {
+        log.info("📤 치수 분석 결과 알림 전송 시작: memberId={}, model3dId={}, status={}",
+            response.getMemberId(), response.getModel3dId(), response.getStatus());
+
+        if (response.getMemberId() == null) {
+            log.error("❌ 치수 분석 결과 알림 전송 실패: memberId가 없습니다. response={}", response);
+            return;
+        }
+
+        try {
+            String destination = "/topic/model-dimensions/" + response.getMemberId();
+            messagingTemplate.convertAndSend(destination, response);
+
+            log.info("✅ 치수 분석 결과 알림 전송 성공: destination={}", destination);
+        } catch (Exception e) {
+            log.error("❌ 치수 분석 결과 알림 전송 실패: memberId={}, error={}",
                 response.getMemberId(), e.getMessage(), e);
         }
     }

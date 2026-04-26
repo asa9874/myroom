@@ -65,6 +65,32 @@ public class Room3DService {
         return Room3DResponseDto.from(savedRoom3D);
     }
 
+    
+    @Transactional
+    public Room3DResponseDto createRoom3DWithXml(
+            MultipartFile xmlFile,
+            Room3DCreateRequestDto requestDto,
+            Long memberId) {
+        validateXmlFile(xmlFile);
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원 " + memberId + "를 찾을 수 없습니다."));
+
+        String drawingXmlUrl = s3Service.uploadXmlFile(xmlFile, "room3d/xml/");
+
+        Room3D room3D = Room3D.builder()
+                .member(member)
+                .roomName(requestDto.roomName())
+                .description(requestDto.description())
+                .drawingImageUrl(null)
+                .drawingXmlUrl(drawingXmlUrl)
+                .success(true)
+                .build();
+
+        Room3D savedRoom3D = room3DRepository.save(room3D);
+        return Room3DResponseDto.from(savedRoom3D);
+    }
+
     @Transactional
     public Room3DResponseDto updateRoom3D(
             Long room3dId,

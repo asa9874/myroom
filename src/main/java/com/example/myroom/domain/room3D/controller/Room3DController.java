@@ -46,6 +46,18 @@ public class Room3DController implements Room3DApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Room3DResponseDto> createRoom3DWithXml(
+            @RequestPart(value = "xml_file", required = true) MultipartFile xmlFile,
+            @RequestParam(value = "room_name") String roomName,
+            @RequestParam(value = "description", required = false) String description,
+            @AuthenticationPrincipal CustomUserDetails member) {
+        Room3DCreateRequestDto requestDto = new Room3DCreateRequestDto(roomName, description);
+        Room3DResponseDto responseDto = room3DService.createRoom3DWithXml(xmlFile, requestDto, member.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    }
+
     @PutMapping(value = "/{room3dId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<Room3DResponseDto> updateRoom3D(

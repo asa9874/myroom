@@ -46,7 +46,7 @@ public class Room3DController implements Room3DApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, path = "/xml")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<Room3DResponseDto> createRoom3DWithXml(
             @RequestPart(value = "xml_file", required = true) MultipartFile xmlFile,

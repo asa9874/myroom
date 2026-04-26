@@ -51,6 +51,28 @@ public interface Room3DApi {
             @AuthenticationPrincipal CustomUserDetails member
     );
 
+    // XML 파일을 통한 Room3D 생성 API
+    @ApiResponses(
+        value = {
+            @ApiResponse(responseCode = "201", description = "Room3D 생성 성공",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Room3DResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않음", content = @Content(schema = @Schema(hidden = true)))
+        }
+    )
+    @Operation(summary = "XML 파일 업로드 및 Room3D 생성", security = @SecurityRequirement(name = "Bearer Authentication"))
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, path = "/xml")
+    ResponseEntity<Room3DResponseDto> createRoom3DWithXml(
+            @Parameter(description = "XML 파일", required = true)
+            @RequestPart(value = "xml_file", required = true) MultipartFile xmlFile,
+            @Parameter(description = "방 이름", required = true, example = "안방")
+            @RequestParam(value = "room_name") String roomName,
+            @Parameter(description = "방 설명", required = false, example = "붙박이장이 있는 안방")
+            @RequestParam(value = "description", required = false) String description,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails member
+    );
+
     @ApiResponses(
         value = {
             @ApiResponse(responseCode = "200", description = "Room3D 수정 성공",

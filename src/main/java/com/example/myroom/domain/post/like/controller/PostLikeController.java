@@ -1,9 +1,12 @@
 package com.example.myroom.domain.post.like.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,5 +41,14 @@ public class PostLikeController implements PostLikeApi {
             @AuthenticationPrincipal CustomUserDetails member) {
         PostLikeResponseDto responseDto = postLikeService.unlike(postId, member.getId());
         return ResponseEntity.ok(responseDto);
+    }
+
+    @GetMapping("/{postId}/likes/me")
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Map<String, Boolean>> isLiked(
+            @PathVariable(name = "postId") Long postId,
+            @AuthenticationPrincipal CustomUserDetails member) {
+        boolean liked = postLikeService.isLiked(postId, member.getId());
+        return ResponseEntity.ok(Map.of("liked", liked));
     }
 }

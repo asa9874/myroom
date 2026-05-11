@@ -65,4 +65,14 @@ public class PostLikeService {
         long likeCount = postLikeRepository.countByPostId(postId);
         return PostLikeResponseDto.of(postId, likeCount, false);
     }
+
+        public boolean isLiked(Long postId, Long memberId) {
+                postRepository.findById(postId)
+                                .orElseThrow(() -> new IllegalArgumentException("게시글 " + postId + "를 찾을 수 없습니다."));
+
+                memberRepository.findById(memberId)
+                                .orElseThrow(() -> new IllegalArgumentException("회원 " + memberId + "를 찾을 수 없습니다."));
+
+                return postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
+        }
 }

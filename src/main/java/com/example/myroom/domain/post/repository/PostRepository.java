@@ -12,6 +12,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     
     // 내 게시글 조회 (모든 공개범위)
     Page<Post> findByMemberIdOrderByCreatedAtDesc(Long memberId, Pageable pageable);
+    long countByMemberId(Long memberId);
     
     // 공개 게시글만 조회 
     Page<Post> findByVisibilityScopeOrderByCreatedAtDesc(VisibilityScope visibilityScope, Pageable pageable);

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.member.dto.request.MemberUpdateRequestDto;
+import com.example.myroom.domain.member.dto.response.MemberActivityCountResponseDto;
 import com.example.myroom.domain.member.dto.response.MemberResponseDto;
 import com.example.myroom.domain.member.service.MemberService;
 import com.example.myroom.global.jwt.CustomUserDetails;
@@ -36,6 +37,14 @@ public class MemberController implements MemberApi {
     public ResponseEntity<MemberResponseDto> getMemberById(
             @PathVariable(name = "memberId") Long memberId) {
         MemberResponseDto responseDto = memberService.getMemberById(memberId);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @GetMapping("/me/activity-counts")
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<MemberActivityCountResponseDto> getMyActivityCounts(
+            @AuthenticationPrincipal CustomUserDetails member) {
+        MemberActivityCountResponseDto responseDto = memberService.getMemberActivityCounts(member.getId());
         return ResponseEntity.ok(responseDto);
     }
 

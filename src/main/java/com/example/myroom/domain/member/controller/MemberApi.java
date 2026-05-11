@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.member.dto.request.MemberUpdateRequestDto;
+import com.example.myroom.domain.member.dto.response.MemberActivityCountResponseDto;
 import com.example.myroom.domain.member.dto.response.MemberResponseDto;
 import com.example.myroom.global.jwt.CustomUserDetails;
 
@@ -83,6 +84,38 @@ public interface MemberApi {
                 example = "1"
             )
             @PathVariable(name = "memberId") Long memberId
+    );
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "회원 활동 개수 조회 성공",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = MemberActivityCountResponseDto.class),
+                    examples = @ExampleObject(
+                        name = "회원 활동 개수 조회 응답",
+                        value = "{\"post_count\": 3, \"comment_count\": 12, \"model3d_count\": 2}"
+                    )
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "인증되지 않음 - 유효하지 않은 토큰",
+                content = @Content(schema = @Schema(hidden = true))
+            )
+        }
+    )
+    @Operation(
+        summary = "내 활동 개수 조회",
+        description = "현재 로그인한 사용자가 작성한 게시글/댓글 및 생성한 3D 모델 개수를 한번에 조회합니다.",
+        security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @GetMapping("/me/activity-counts")
+    ResponseEntity<MemberActivityCountResponseDto> getMyActivityCounts(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails member
     );
 
     @ApiResponses(

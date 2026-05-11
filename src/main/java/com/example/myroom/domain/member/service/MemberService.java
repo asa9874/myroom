@@ -7,10 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.image.S3ImageUploadService;
+import com.example.myroom.domain.comment.repository.CommentRepository;
 import com.example.myroom.domain.member.dto.request.MemberUpdateRequestDto;
+import com.example.myroom.domain.member.dto.response.MemberActivityCountResponseDto;
 import com.example.myroom.domain.member.dto.response.MemberResponseDto;
 import com.example.myroom.domain.member.model.Member;
 import com.example.myroom.domain.member.repository.MemberRepository;
+import com.example.myroom.domain.model3D.repository.Model3DRepository;
+import com.example.myroom.domain.post.repository.PostRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,12 +23,27 @@ import lombok.RequiredArgsConstructor;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final S3ImageUploadService s3ImageUploadService;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
+    private final Model3DRepository model3DRepository;
 
 
     public MemberResponseDto getMemberById(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 " + memberId + "을 찾을 수 없습니다."));
         return MemberResponseDto.from(member);
+    }
+
+    public MemberActivityCountResponseDto getMemberActivityCounts(Long memberId) {
+        if (!memberRepository.existsById(memberId)) {
+            throw new IllegalArgumentException("회원 " + memberId + "을 찾을 수 없습니다.");
+        }
+
+        long postCount = postRepository.countByMemberId(memberId);
+        long commentCount = commentRepository.countByMemberId(memberId);
+        long model3dCount = model3DRepository.countByCreatorId(memberId);
+
+        return MemberActivityCountResponseDto.of(postCount, commentCount, model3dCount);
     }
 
     public List<MemberResponseDto> getAllMembers() {

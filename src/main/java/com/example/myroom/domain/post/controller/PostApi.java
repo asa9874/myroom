@@ -305,6 +305,31 @@ public interface PostApi {
     @ApiResponses(
         value = {
             @ApiResponse(
+                responseCode = "200",
+                description = "내가 좋아요한 게시글 목록 조회 성공",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = Page.class)
+                )
+            )
+        }
+    )
+    @Operation(
+        summary = "내가 좋아요한 게시글 목록 조회 (페이지네이션)",
+        description = "로그인한 사용자가 좋아요한 게시글 목록을 페이지네이션으로 조회합니다.",
+        security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @GetMapping("/likes/my")
+    ResponseEntity<Page<PostResponseDto>> getMyLikedPosts(
+            @Parameter(description = "페이지네이션 정보")
+            Pageable pageable,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails member
+    );
+
+    @ApiResponses(
+        value = {
+            @ApiResponse(
                 responseCode = "200", 
                 description = "게시글 검색 성공",
                 content = @Content(

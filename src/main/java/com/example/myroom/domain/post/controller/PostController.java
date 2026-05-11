@@ -115,6 +115,15 @@ public class PostController implements PostApi {
         return ResponseEntity.ok(posts);
     }
 
+    @GetMapping("/likes/my")
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Page<PostResponseDto>> getMyLikedPosts(
+            Pageable pageable,
+            @AuthenticationPrincipal CustomUserDetails member) {
+        Page<PostResponseDto> posts = postService.getLikedPosts(member.getId(), pageable);
+        return ResponseEntity.ok(posts);
+    }
+
     @GetMapping("/search")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<Page<PostResponseDto>> searchPosts(

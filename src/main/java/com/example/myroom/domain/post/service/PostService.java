@@ -165,6 +165,11 @@ public class PostService {
         return mapPostPageWithCounts(posts);
     }
 
+    public Page<PostResponseDto> getLikedPosts(Long memberId, Pageable pageable) {
+        Page<Post> posts = postLikeRepository.findLikedPostsByMemberId(memberId, pageable);
+        return mapPostPageWithCounts(posts);
+    }
+
     public Page<PostResponseDto> searchPosts(String title, Category category, Long memberId, boolean isMyPost,
             Pageable pageable) {
         Page<Post> posts;

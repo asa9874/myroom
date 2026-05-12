@@ -9,6 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.myroom.domain.recommand.model.RecommandHistory;
 
 public interface RecommandHistoryRepository extends JpaRepository<RecommandHistory, Long> {
-    Page<RecommandHistory> findByMemberIdOrderByCreatedAtDesc(Long memberId, Pageable pageable);
+    Page<RecommandHistory> findByMemberId(Long memberId, Pageable pageable);
     Optional<RecommandHistory> findByIdAndMemberId(Long id, Long memberId);
 }

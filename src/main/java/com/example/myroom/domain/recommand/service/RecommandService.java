@@ -177,7 +177,7 @@ public class RecommandService {
     }
 
     public Page<RecommandHistoryResponseDto> getMyRecommandHistories(Long memberId, Pageable pageable) {
-        return recommandHistoryRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable)
+        return recommandHistoryRepository.findByMemberId(memberId, pageable)
                 .map(RecommandHistoryResponseDto::from);
     }
 
@@ -188,7 +188,7 @@ public class RecommandService {
     }
 
     public Page<RecommandSimpleHistoryResponseDto> getMySimpleRecommandHistories(Long memberId, Pageable pageable) {
-        return recommandHistoryRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable)
+        return recommandHistoryRepository.findByMemberId(memberId, pageable)
                 .map(RecommandSimpleHistoryResponseDto::from);
     }
 

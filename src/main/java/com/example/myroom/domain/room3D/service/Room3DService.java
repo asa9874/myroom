@@ -123,7 +123,7 @@ public class Room3DService {
     }
 
     public Page<Room3DResponseDto> getMyRoom3Ds(Long memberId, Pageable pageable) {
-        return room3DRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable)
+        return room3DRepository.findByMemberId(memberId, pageable)
                 .map(Room3DResponseDto::from);
     }
 

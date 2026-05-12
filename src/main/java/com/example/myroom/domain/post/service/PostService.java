@@ -150,18 +150,18 @@ public class PostService {
     }
 
     public Page<PostResponseDto> getPublicPosts(Pageable pageable) {
-        Page<Post> posts = postRepository.findByVisibilityScopeOrderByCreatedAtDesc(VisibilityScope.PUBLIC, pageable);
+        Page<Post> posts = postRepository.findByVisibilityScope(VisibilityScope.PUBLIC, pageable);
         return mapPostPageWithCounts(posts);
     }
 
     public Page<PostResponseDto> getPostsByCategory(Category category, Pageable pageable) {
-        Page<Post> posts = postRepository.findByVisibilityScopeAndCategoryOrderByCreatedAtDesc(
+        Page<Post> posts = postRepository.findByVisibilityScopeAndCategory(
                 VisibilityScope.PUBLIC, category, pageable);
         return mapPostPageWithCounts(posts);
     }
 
     public Page<PostResponseDto> getMyPosts(Long memberId, Pageable pageable) {
-        Page<Post> posts = postRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable);
+        Page<Post> posts = postRepository.findByMemberId(memberId, pageable);
         return mapPostPageWithCounts(posts);
     }
 
@@ -176,14 +176,14 @@ public class PostService {
 
         if (isMyPost) {
             // 내 게시글 검색
-            posts = postRepository.findByMemberIdAndTitleContainingOrderByCreatedAtDesc(memberId, title, pageable);
+            posts = postRepository.findByMemberIdAndTitleContaining(memberId, title, pageable);
         } else {
             // 공개 게시글 검색
             if (category != null) {
-                posts = postRepository.findByVisibilityScopeAndCategoryAndTitleContainingOrderByCreatedAtDesc(
+                posts = postRepository.findByVisibilityScopeAndCategoryAndTitleContaining(
                         VisibilityScope.PUBLIC, category, title, pageable);
             } else {
-                posts = postRepository.findByVisibilityScopeAndTitleContainingOrderByCreatedAtDesc(
+                posts = postRepository.findByVisibilityScopeAndTitleContaining(
                         VisibilityScope.PUBLIC, title, pageable);
             }
         }

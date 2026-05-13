@@ -679,6 +679,7 @@ public interface Model3DApi {
             
             **검색:**
             - `name` 파라미터로 모델 이름 검색 (부분 일치)
+                - `category` 파라미터로 가구 카테고리 필터링
             """
     )
     @SecurityRequirement(name = "Bearer Authentication")
@@ -698,6 +699,12 @@ public interface Model3DApi {
                 example = "의자"
             )
             @RequestParam(required = false, name = "name") String name,
+            @Parameter(
+                description = "가구 카테고리 필터 (예: sofa, chair, desk)",
+                required = false,
+                example = "sofa"
+            )
+            @RequestParam(required = false, name = "category") String category,
             @Parameter(description = "페이지네이션 정보")
             Pageable pageable
     );
@@ -741,6 +748,7 @@ public interface Model3DApi {
                 example = "소파"
             )
             @RequestParam(required = false, name = "name") String name,
+            @Parameter(description = "가구 카테고리")String category,
             @Parameter(description = "페이지네이션 정보")
             Pageable pageable
     );

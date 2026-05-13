@@ -21,6 +21,7 @@ import com.example.myroom.domain.model3D.dto.request.Model3DUploadRequestDto;
 import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
 import com.example.myroom.domain.model3D.messaging.Model3DProducer;
 import com.example.myroom.domain.model3D.model.Model3D;
+import com.example.myroom.domain.model3D.model.FurnitureCategory;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -332,21 +333,37 @@ public class Model3DService {
                 .toList();
     }
 
-    public Page<Model3DResponseDto> getModel3DsByMemberId(Long targetMemberId, Long memberId, String name, Pageable pageable) {
+    public Page<Model3DResponseDto> getModel3DsByMemberId(Long targetMemberId, Long memberId, String name, FurnitureCategory category, Pageable pageable) {
         Page<Model3D> model3Ds;
-        if (name != null && !name.isEmpty()) {
+        boolean hasName = name != null && !name.isEmpty();
+        boolean hasCategory = category != null;
+
+        if (hasName && hasCategory) {
+            model3Ds = model3DRepository.findByCreatorIdAndFurnitureTypeAndNameContaining(
+                    targetMemberId, category, name, pageable);
+        } else if (hasName) {
             model3Ds = model3DRepository.findByCreatorIdAndNameContaining(targetMemberId, name, pageable);
+        } else if (hasCategory) {
+            model3Ds = model3DRepository.findByCreatorIdAndFurnitureType(targetMemberId, category, pageable);
         } else {
             model3Ds = model3DRepository.findByCreatorId(targetMemberId, pageable);
         }
         return model3Ds.map(Model3DResponseDto::from);
     }
 
-    public Page<Model3DResponseDto> getSharedModel3Ds(Long memberId, String name, Pageable pageable) {
+    public Page<Model3DResponseDto> getSharedModel3Ds(Long memberId, String name, FurnitureCategory category, Pageable pageable) {
         Page<Model3D> model3Ds;
 
-        if (name != null && !name.isEmpty()) {
+        boolean hasName = name != null && !name.isEmpty();
+        boolean hasCategory = category != null;
+
+        if (hasName && hasCategory) {
+            model3Ds = model3DRepository.findByIsSharedTrueAndFurnitureTypeAndNameContainingAndStatus(
+                    category, name, "SUCCESS", pageable);
+        } else if (hasName) {
             model3Ds = model3DRepository.findByIsSharedTrueAndNameContainingAndStatus(name, "SUCCESS", pageable);
+        } else if (hasCategory) {
+            model3Ds = model3DRepository.findByIsSharedTrueAndFurnitureTypeAndStatus(category, "SUCCESS", pageable);
         } else {
             model3Ds = model3DRepository.findByIsSharedTrueAndStatus("SUCCESS", pageable);
         }

@@ -162,8 +162,13 @@ public class Model3DController implements Model3DApi {
             @PathVariable(name = "memberId") Long memberId,
             @AuthenticationPrincipal CustomUserDetails member,
             @RequestParam(required = false, name = "name") String name,
+            @RequestParam(required = false, name = "category") String category,
             Pageable pageable) {
-        Page<Model3DResponseDto> responseDtos = model3DService.getModel3DsByMemberId(memberId, member.getId(), name, pageable);
+        FurnitureCategory furnitureCategory = (category == null || category.isBlank())
+            ? null
+            : FurnitureCategory.fromString(category);
+        Page<Model3DResponseDto> responseDtos = model3DService.getModel3DsByMemberId(
+            memberId, member.getId(), name, furnitureCategory, pageable);
         return ResponseEntity.ok(responseDtos);
     }
 
@@ -171,8 +176,13 @@ public class Model3DController implements Model3DApi {
     public ResponseEntity<Page<Model3DResponseDto>> getSharedModel3Ds(
             @AuthenticationPrincipal CustomUserDetails member,
             @RequestParam(required = false, name = "name") String name,
+            @RequestParam(required = false, name = "category") String category,
             Pageable pageable) {
-        Page<Model3DResponseDto> responseDtos = model3DService.getSharedModel3Ds(member.getId(), name, pageable);
+        FurnitureCategory furnitureCategory = (category == null || category.isBlank())
+            ? null
+            : FurnitureCategory.fromString(category);
+        Page<Model3DResponseDto> responseDtos = model3DService.getSharedModel3Ds(
+            member.getId(), name, furnitureCategory, pageable);
         return ResponseEntity.ok(responseDtos);
     }
 

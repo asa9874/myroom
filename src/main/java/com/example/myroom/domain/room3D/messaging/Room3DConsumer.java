@@ -6,7 +6,9 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import com.example.myroom.domain.room3D.dto.message.Room3DResponseMessage;
+import com.example.myroom.domain.room3D.model.Room3D;
 import com.example.myroom.domain.room3D.service.Room3DService;
+import com.example.myroom.domain.socket.service.WebSocketNotificationService;
 import com.example.myroom.global.config.RabbitConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -19,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Room3DConsumer {
 
     private final Room3DService room3DService;
+    private final WebSocketNotificationService webSocketNotificationService;
     private final ObjectMapper objectMapper;
 
     private static final Logger mqLogger = LoggerFactory.getLogger("com.example.myroom.rabbitmq.mq");
@@ -40,8 +43,20 @@ public class Room3DConsumer {
         }
 
         try {
-            room3DService.handleRoom3DResponse(response);
+            Room3D updatedRoom3D = room3DService.handleRoom3DResponse(response);
+            if (updatedRoom3D == null) {
+                log.warn("Room3D 응답 상태 미지원: room3dId={}, status={}",
+                        response.getRoom3dId(), response.getStatus());
+                return;
+            }
+
             log.info("Room3D 응답 처리 완료: room3dId={}", response.getRoom3dId());
+
+            webSocketNotificationService.sendRoom3DGenerationNotification(
+                    response,
+                    updatedRoom3D.getDrawingImageUrl());
+            log.info("Room3D WebSocket 알림 전송 완료: room3dId={}, memberId={}",
+                    response.getRoom3dId(), response.getMemberId());
         } catch (Exception e) {
             log.error("Room3D 응답 처리 실패: room3dId={}, error={}",
                     response.getRoom3dId(), e.getMessage(), e);

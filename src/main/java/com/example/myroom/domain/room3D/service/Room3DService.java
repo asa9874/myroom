@@ -138,7 +138,7 @@ public class Room3DService {
     }
 
     @Transactional
-    public void handleRoom3DResponse(Room3DResponseMessage response) {
+    public Room3D handleRoom3DResponse(Room3DResponseMessage response) {
         Room3D room3D = room3DRepository.findById(response.getRoom3dId())
                 .orElseThrow(() -> new EntityNotFoundException("Room3D를 찾을 수 없습니다. id=" + response.getRoom3dId()));
 
@@ -155,10 +155,11 @@ public class Room3DService {
             room3D.updateAiResult(false, null);
         } else {
             log.warn("지원하지 않는 Room3D 상태값입니다. status={}", response.getStatus());
-            return;
+            return null;
         }
 
         room3DRepository.save(room3D);
+        return room3D;
     }
 
     private Room3D getOwnedRoom3D(Long room3dId, Long memberId) {

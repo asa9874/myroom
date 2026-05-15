@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 import com.example.myroom.domain.model3D.dto.message.ModelDimensionsImageResponseMessage;
 import com.example.myroom.domain.model3D.dto.message.Model3DGenerationResponse;
 import com.example.myroom.domain.recommand.dto.message.RecommandResponseMessage;
+import com.example.myroom.domain.room3D.dto.message.Room3DResponseMessage;
 import com.example.myroom.domain.socket.dto.Model3DNotificationMessage;
+import com.example.myroom.domain.socket.dto.Room3DNotificationMessage;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,15 +23,19 @@ import lombok.extern.slf4j.Slf4j;
  *    - 전체 브로드캐스트: `/topic/model3d/all`
  *    - 메시지 타입: Model3DNotificationMessage
  * 
- * 2. **가구 추천 결과 알림**
+ * 2. **Room3D 생성 알림**
+ *    - 개인 알림: `/topic/room3d/{memberId}`
+ *    - 메시지 타입: Room3DNotificationMessage
+ * 
+ * 3. **가구 추천 결과 알림**
  *    - 개인 알림: `/topic/recommand/{memberId}`
  *    - 메시지 타입: RecommandResponseMessage
  * 
- * 3. **가구 치수 추출 결과 알림**
+ * 4. **가구 치수 추출 결과 알림**
  *    - 개인 알림: `/topic/model-dimensions/{memberId}`
  *    - 메시지 타입: ModelDimensionsImageResponseMessage
  * 
- * 4. **커스텀 알림**
+ * 5. **커스텀 알림**
  *    - 개인 알림: `/topic/notifications/{memberId}`
  *    - 메시지 타입: Model3DNotificationMessage
  * 
@@ -123,6 +129,58 @@ public class WebSocketNotificationService {
                 .message(response.getMessage())
                 .processingTimeSeconds(response.getProcessingTimeSeconds())
                 .timestamp(response.getTimestamp())
+                .build();
+    }
+
+    /**
+     * 특정 회원에게 Room3D 생성 완료 알림 전송
+     *
+     * @param response RabbitMQ로부터 받은 Room3D 생성 응답
+     * @param drawingImageUrl 도면 이미지 URL
+     */
+    public void sendRoom3DGenerationNotification(Room3DResponseMessage response, String drawingImageUrl) {
+        log.info("📤 Room3D WebSocket 알림 전송 시작: memberId={}, status={}",
+            response.getMemberId(), response.getStatus());
+
+        try {
+            Room3DNotificationMessage notification = convertToRoom3DNotification(response, drawingImageUrl);
+            String destination = "/topic/room3d/" + response.getMemberId();
+            messagingTemplate.convertAndSend(destination, notification);
+
+            log.info("✅ Room3D WebSocket 알림 전송 성공: destination={}", destination);
+        } catch (Exception e) {
+            log.error("❌ Room3D WebSocket 알림 전송 실패: memberId={}, error={}",
+                response.getMemberId(), e.getMessage(), e);
+        }
+    }
+
+    private Room3DNotificationMessage convertToRoom3DNotification(
+            Room3DResponseMessage response,
+            String drawingImageUrl) {
+        String status = response.getStatus();
+        String notificationType;
+
+        if ("SUCCESS".equalsIgnoreCase(status)) {
+            notificationType = "ROOM3D_GENERATION_SUCCESS";
+        } else if ("FAILED".equalsIgnoreCase(status)) {
+            notificationType = "ROOM3D_GENERATION_FAILED";
+        } else {
+            notificationType = "ROOM3D_GENERATION_PROGRESS";
+        }
+
+        Long timestamp = response.getTimestamp() != null
+                ? response.getTimestamp()
+                : System.currentTimeMillis();
+
+        return Room3DNotificationMessage.builder()
+                .notificationType(notificationType)
+                .memberId(response.getMemberId())
+                .room3dId(response.getRoom3dId())
+                .drawingImageUrl(drawingImageUrl)
+                .xmlFileUrl(response.getXmlFileUrl())
+                .status(response.getStatus())
+                .message(response.getMessage())
+                .timestamp(timestamp)
                 .build();
     }
 

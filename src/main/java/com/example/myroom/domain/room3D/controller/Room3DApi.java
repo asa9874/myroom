@@ -38,7 +38,75 @@ public interface Room3DApi {
             @ApiResponse(responseCode = "401", description = "인증되지 않음", content = @Content(schema = @Schema(hidden = true)))
         }
     )
-    @Operation(summary = "도면 이미지 업로드 및 Room3D 생성", security = @SecurityRequirement(name = "Bearer Authentication"))
+    @Operation(
+        summary = "도면 이미지 업로드 및 Room3D 생성",
+        description = """
+            도면 이미지를 업로드하여 AI 기반 Room3D 생성을 요청합니다.
+
+            **인증 필요:** Bearer Token
+
+            **지원 이미지 형식:** JPG, JPEG, PNG
+
+            **처리 과정:**
+            1. 이미지 업로드 → S3 저장
+            2. Room3D 생성 요청 (PROCESSING 상태)
+            3. AI 서버에서 XML 생성
+            4. 완료 시 WebSocket으로 알림 (SUCCESS/FAILED 상태)
+
+            ### 📡 WebSocket 알림 정보
+
+            **WebSocket 연결:** `/ws/notifications` (STOMP 프로토콜)
+            **구독 토픽:** `/topic/room3d/{userId}` (개인 알림)
+
+            #### 🎯 생성 성공 시 WebSocket 응답
+            ```json
+            {
+                "notificationType": "ROOM3D_GENERATION_SUCCESS",
+                "memberId": 10,
+                "room3dId": 1,
+                "drawingImageUrl": "https://asa-room.s3.amazonaws.com/room3d/images/a.png",
+                "xmlFileUrl": "https://asa-room.s3.amazonaws.com/room3d/xml/a.xml",
+                "status": "SUCCESS",
+                "message": "Room3D 생성이 완료되었습니다.",
+                "timestamp": 1705312300000
+            }
+            ```
+
+            #### ❌ 생성 실패 시 WebSocket 응답
+            ```json
+            {
+                "notificationType": "ROOM3D_GENERATION_FAILED",
+                "memberId": 10,
+                "room3dId": 1,
+                "drawingImageUrl": "https://asa-room.s3.amazonaws.com/room3d/images/a.png",
+                "xmlFileUrl": null,
+                "status": "FAILED",
+                "message": "도면 인식 실패로 Room3D 생성에 실패했습니다.",
+                "timestamp": 1705312300000
+            }
+            ```
+
+            #### ⚙️ 처리 중 상태 WebSocket 응답 (선택적)
+            ```json
+            {
+                "notificationType": "ROOM3D_GENERATION_PROGRESS",
+                "memberId": 10,
+                "room3dId": 1,
+                "drawingImageUrl": "https://asa-room.s3.amazonaws.com/room3d/images/a.png",
+                "xmlFileUrl": null,
+                "status": "PROCESSING",
+                "message": "Room3D 생성을 진행 중입니다.",
+                "timestamp": 1705312250000
+            }
+            ```
+
+            **주의사항:**
+            - Room3D 생성은 비동기로 처리됩니다.
+            - 생성 완료 알림은 WebSocket을 통해 받을 수 있습니다.
+            - 처리 시간은 이미지 복잡도에 따라 수십 초 이상 소요될 수 있습니다.
+            """,
+        security = @SecurityRequirement(name = "Bearer Authentication")
+    )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<Room3DResponseDto> createRoom3D(
             @Parameter(description = "도면 이미지 파일", required = true)

@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.image.ImageUploadService;
@@ -22,6 +23,7 @@ import com.example.myroom.domain.model3D.dto.response.Model3DResponseDto;
 import com.example.myroom.domain.model3D.messaging.Model3DProducer;
 import com.example.myroom.domain.model3D.model.Model3D;
 import com.example.myroom.domain.model3D.model.FurnitureCategory;
+import com.example.myroom.domain.model3D.repository.ModelDimensionsRepository;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class Model3DService {
     private final Model3DRepository model3DRepository;
+    private final ModelDimensionsRepository modelDimensionsRepository;
     private final ImageUploadService imageUploadService;
     private final S3ImageUploadService s3ImageUploadService;
     private final Model3DProducer model3DProducer;
@@ -145,6 +148,7 @@ public class Model3DService {
         return Model3DResponseDto.from(updatedModel3D);
     }
 
+    @Transactional
     public void deleteModel3D(Long model3dId, Long memberId) {
         Model3D model3D = model3DRepository.findById(model3dId)
                 .orElseThrow(() -> new IllegalArgumentException("3D 모델 " + model3dId + "을 찾을 수 없습니다."));
@@ -159,6 +163,7 @@ public class Model3DService {
             log.info("🗑️ VectorDB 삭제 요청: model3dId={}", model3dId);
         }
 
+        modelDimensionsRepository.deleteByModel3DId(model3dId);
         model3DRepository.deleteById(model3dId);
     }
 

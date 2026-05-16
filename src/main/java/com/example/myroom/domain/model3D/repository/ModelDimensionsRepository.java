@@ -11,4 +11,5 @@ import com.example.myroom.domain.model3D.model.ModelDimensions;
 public interface ModelDimensionsRepository extends JpaRepository<ModelDimensions, Long> {
     Optional<ModelDimensions> findByModel3DId(Long model3dId);
     boolean existsByModel3DId(Long model3dId);
+    void deleteByModel3DId(Long model3dId);
 }

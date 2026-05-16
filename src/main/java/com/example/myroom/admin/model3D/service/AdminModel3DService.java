@@ -4,11 +4,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.myroom.admin.model3D.dto.request.AdminModel3DCreateRequestDto;
 import com.example.myroom.admin.model3D.dto.request.AdminModel3DUpdateRequestDto;
 import com.example.myroom.admin.model3D.dto.response.AdminModel3DResponseDto;
 import com.example.myroom.domain.model3D.model.Model3D;
+import com.example.myroom.domain.model3D.repository.ModelDimensionsRepository;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminModel3DService {
     private final Model3DRepository model3DRepository;
+    private final ModelDimensionsRepository modelDimensionsRepository;
 
     public AdminModel3DResponseDto getModel3DById(Long model3dId) {
         Model3D model3D = model3DRepository.findById(model3dId)
@@ -61,10 +64,12 @@ public class AdminModel3DService {
         return AdminModel3DResponseDto.from(updatedModel3D);
     }
 
+    @Transactional
     public void deleteModel3D(Long model3dId) {
         if (!model3DRepository.existsById(model3dId)) {
             throw new IllegalArgumentException("3D 모델 " + model3dId + "을 찾을 수 없습니다.");
         }
+        modelDimensionsRepository.deleteByModel3DId(model3dId);
         model3DRepository.deleteById(model3dId);
     }
 

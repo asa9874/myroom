@@ -145,6 +145,8 @@ public class PostService {
             throw new IllegalArgumentException("게시글을 삭제할 권한이 없습니다.");
         }
 
+        commentRepository.deleteByPostId(postId);
+        postLikeRepository.deleteByPostId(postId);
         postRepository.delete(post);
         log.info("게시글이 삭제되었습니다. ID: {}", postId);
     }

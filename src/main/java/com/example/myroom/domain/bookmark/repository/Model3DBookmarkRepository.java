@@ -28,4 +28,8 @@ public interface Model3DBookmarkRepository extends JpaRepository<Model3DBookmark
         countQuery = "SELECT COUNT(b) FROM Model3DBookmark b WHERE b.member.id = :memberId AND (b.model3D.creatorId = :memberId OR b.model3D.isShared = true)"
     )
     Page<Model3D> findBookmarkedModel3DsByMemberId(@Param("memberId") Long memberId, Pageable pageable);
+
+    void deleteByMemberId(Long memberId);
+
+    void deleteByModel3DId(Long model3dId);
 }

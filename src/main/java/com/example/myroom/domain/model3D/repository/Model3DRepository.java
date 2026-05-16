@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.example.myroom.domain.model3D.model.FurnitureCategory;
 import com.example.myroom.domain.model3D.model.Model3D;
@@ -28,4 +30,7 @@ public interface Model3DRepository extends JpaRepository<Model3D, Long> {
     List<Model3D> findByIsVectorDbTrainedFalse();
     
     List<Model3D> findByCreatorIdAndStatus(Long creatorId, String status);
+
+    @Query("SELECT m.id FROM Model3D m WHERE m.creatorId = :creatorId")
+    List<Long> findIdsByCreatorId(@Param("creatorId") Long creatorId);
 }

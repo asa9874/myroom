@@ -9,9 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.myroom.admin.model3D.dto.request.AdminModel3DCreateRequestDto;
 import com.example.myroom.admin.model3D.dto.request.AdminModel3DUpdateRequestDto;
 import com.example.myroom.admin.model3D.dto.response.AdminModel3DResponseDto;
+import com.example.myroom.domain.bookmark.repository.Model3DBookmarkRepository;
+import com.example.myroom.domain.comment.repository.CommentRepository;
 import com.example.myroom.domain.model3D.model.Model3D;
 import com.example.myroom.domain.model3D.repository.ModelDimensionsRepository;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
+import com.example.myroom.domain.post.like.repository.PostLikeRepository;
+import com.example.myroom.domain.post.repository.PostRepository;
+import com.example.myroom.domain.recommand.repository.RecommandResultRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +25,11 @@ import lombok.RequiredArgsConstructor;
 public class AdminModel3DService {
     private final Model3DRepository model3DRepository;
     private final ModelDimensionsRepository modelDimensionsRepository;
+    private final Model3DBookmarkRepository model3DBookmarkRepository;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final RecommandResultRepository recommandResultRepository;
 
     public AdminModel3DResponseDto getModel3DById(Long model3dId) {
         Model3D model3D = model3DRepository.findById(model3dId)
@@ -69,6 +79,15 @@ public class AdminModel3DService {
         if (!model3DRepository.existsById(model3dId)) {
             throw new IllegalArgumentException("3D 모델 " + model3dId + "을 찾을 수 없습니다.");
         }
+        List<Long> postIds = postRepository.findIdsByModel3DId(model3dId);
+        if (!postIds.isEmpty()) {
+            commentRepository.deleteByPostIdIn(postIds);
+            postLikeRepository.deleteByPostIdIn(postIds);
+            postRepository.deleteByModel3DId(model3dId);
+        }
+
+        model3DBookmarkRepository.deleteByModel3DId(model3dId);
+        recommandResultRepository.deleteModel3DLinks(model3dId);
         modelDimensionsRepository.deleteByModel3DId(model3dId);
         model3DRepository.deleteById(model3dId);
     }

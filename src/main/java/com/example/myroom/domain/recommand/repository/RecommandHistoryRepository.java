@@ -11,4 +11,6 @@ import com.example.myroom.domain.recommand.model.RecommandHistory;
 public interface RecommandHistoryRepository extends JpaRepository<RecommandHistory, Long> {
     Page<RecommandHistory> findByMemberId(Long memberId, Pageable pageable);
     Optional<RecommandHistory> findByIdAndMemberId(Long id, Long memberId);
+
+    void deleteByMemberId(Long memberId);
 }

@@ -34,4 +34,10 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
         countQuery = "SELECT COUNT(pl) FROM PostLike pl WHERE pl.member.id = :memberId"
     )
     Page<Post> findLikedPostsByMemberId(@Param("memberId") Long memberId, Pageable pageable);
+
+    void deleteByPostId(Long postId);
+
+    void deleteByPostIdIn(List<Long> postIds);
+
+    void deleteByMemberId(Long memberId);
 }

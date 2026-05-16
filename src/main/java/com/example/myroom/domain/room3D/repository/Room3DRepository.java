@@ -13,4 +13,6 @@ public interface Room3DRepository extends JpaRepository<Room3D, Long> {
     Optional<Room3D> findByIdAndMemberId(Long id, Long memberId);
 
     Page<Room3D> findByMemberId(Long memberId, Pageable pageable);
+
+    void deleteByMemberId(Long memberId);
 }

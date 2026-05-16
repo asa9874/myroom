@@ -14,6 +14,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.myroom.domain.image.ImageUploadService;
 import com.example.myroom.domain.image.Model3DImageUrls;
 import com.example.myroom.domain.image.S3ImageUploadService;
+import com.example.myroom.domain.comment.repository.CommentRepository;
+import com.example.myroom.domain.bookmark.repository.Model3DBookmarkRepository;
+import com.example.myroom.domain.post.like.repository.PostLikeRepository;
+import com.example.myroom.domain.post.repository.PostRepository;
 import com.example.myroom.domain.model3D.dto.message.Model3DGenerationResponse;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestDto;
 import com.example.myroom.domain.model3D.dto.request.Model3DUpdateRequestV2Dto;
@@ -25,6 +29,7 @@ import com.example.myroom.domain.model3D.model.Model3D;
 import com.example.myroom.domain.model3D.model.FurnitureCategory;
 import com.example.myroom.domain.model3D.repository.ModelDimensionsRepository;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
+import com.example.myroom.domain.recommand.repository.RecommandResultRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -37,6 +42,11 @@ import lombok.extern.slf4j.Slf4j;
 public class Model3DService {
     private final Model3DRepository model3DRepository;
     private final ModelDimensionsRepository modelDimensionsRepository;
+    private final Model3DBookmarkRepository model3DBookmarkRepository;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final RecommandResultRepository recommandResultRepository;
     private final ImageUploadService imageUploadService;
     private final S3ImageUploadService s3ImageUploadService;
     private final Model3DProducer model3DProducer;
@@ -163,6 +173,15 @@ public class Model3DService {
             log.info("🗑️ VectorDB 삭제 요청: model3dId={}", model3dId);
         }
 
+        List<Long> postIds = postRepository.findIdsByModel3DId(model3dId);
+        if (!postIds.isEmpty()) {
+            commentRepository.deleteByPostIdIn(postIds);
+            postLikeRepository.deleteByPostIdIn(postIds);
+            postRepository.deleteByModel3DId(model3dId);
+        }
+
+        model3DBookmarkRepository.deleteByModel3DId(model3dId);
+        recommandResultRepository.deleteModel3DLinks(model3dId);
         modelDimensionsRepository.deleteByModel3DId(model3dId);
         model3DRepository.deleteById(model3dId);
     }

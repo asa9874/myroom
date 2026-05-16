@@ -4,17 +4,23 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.myroom.domain.image.S3ImageUploadService;
+import com.example.myroom.domain.bookmark.repository.Model3DBookmarkRepository;
 import com.example.myroom.domain.comment.repository.CommentRepository;
 import com.example.myroom.domain.member.dto.request.MemberUpdateRequestDto;
 import com.example.myroom.domain.member.dto.response.MemberActivityCountResponseDto;
 import com.example.myroom.domain.member.dto.response.MemberResponseDto;
 import com.example.myroom.domain.member.model.Member;
 import com.example.myroom.domain.member.repository.MemberRepository;
+import com.example.myroom.domain.model3D.service.Model3DService;
 import com.example.myroom.domain.model3D.repository.Model3DRepository;
+import com.example.myroom.domain.post.like.repository.PostLikeRepository;
 import com.example.myroom.domain.post.repository.PostRepository;
+import com.example.myroom.domain.recommand.repository.RecommandHistoryRepository;
+import com.example.myroom.domain.room3D.repository.Room3DRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +32,11 @@ public class MemberService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final Model3DRepository model3DRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final Model3DBookmarkRepository model3DBookmarkRepository;
+    private final Room3DRepository room3DRepository;
+    private final RecommandHistoryRepository recommandHistoryRepository;
+    private final Model3DService model3DService;
 
 
     public MemberResponseDto getMemberById(Long memberId) {
@@ -78,10 +89,29 @@ public class MemberService {
         }
     }
 
+    @Transactional
     public void deleteMember(Long memberId) {
         if (!memberRepository.existsById(memberId)) {
             throw new IllegalArgumentException("회원 " + memberId + "을 찾을 수 없습니다.");
         }
+
+        List<Long> model3dIds = model3DRepository.findIdsByCreatorId(memberId);
+        for (Long model3dId : model3dIds) {
+            model3DService.deleteModel3D(model3dId, memberId);
+        }
+
+        List<Long> postIds = postRepository.findIdsByMemberId(memberId);
+        if (!postIds.isEmpty()) {
+            commentRepository.deleteByPostIdIn(postIds);
+            postLikeRepository.deleteByPostIdIn(postIds);
+            postRepository.deleteByMemberId(memberId);
+        }
+
+        commentRepository.deleteByMemberId(memberId);
+        postLikeRepository.deleteByMemberId(memberId);
+        model3DBookmarkRepository.deleteByMemberId(memberId);
+        room3DRepository.deleteByMemberId(memberId);
+        recommandHistoryRepository.deleteByMemberId(memberId);
         memberRepository.deleteById(memberId);
     }
 }

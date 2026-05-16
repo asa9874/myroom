@@ -41,7 +41,7 @@ public class Room3D {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
+    @Column
     private String drawingImageUrl;
 
     private String drawingXmlUrl;

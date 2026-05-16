@@ -24,7 +24,7 @@ public record Room3DResponseDto(
         @Schema(description = "방 설명", requiredMode = RequiredMode.NOT_REQUIRED, example = "붙박이장이 있는 안방")
         String description,
 
-        @Schema(description = "도면 이미지 URL", requiredMode = RequiredMode.REQUIRED, example = "https://asa-room.s3.amazonaws.com/room3d/images/a.png")
+        @Schema(description = "도면 이미지 URL", requiredMode = RequiredMode.NOT_REQUIRED, example = "https://asa-room.s3.amazonaws.com/room3d/images/a.png")
         String drawingImageUrl,
 
         @Schema(description = "도면 XML 파일 URL", requiredMode = RequiredMode.NOT_REQUIRED, example = "https://asa-room.s3.amazonaws.com/room3d/xml/a.xml")

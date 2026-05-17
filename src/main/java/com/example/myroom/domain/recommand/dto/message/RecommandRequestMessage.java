@@ -43,11 +43,11 @@ public class RecommandRequestMessage {
      * - 예: 'chair', 'table', 'lamp', 'sofa' 등
      */
     @Schema(
-        description = "추천받을 가구 카테고리 (chair, table, sofa, bed, lamp, desk, shelf 등)", 
+        description = "추천받을 가구 카테고리 (chair, table, sofa, bed, lamp, desk, shelf, others 등)", 
         requiredMode = RequiredMode.NOT_REQUIRED,
         example = "chair",
         defaultValue = "chair",
-        allowableValues = {"chair", "table", "sofa", "bed", "lamp", "desk", "shelf"}
+        allowableValues = {"chair", "table", "sofa", "bed", "lamp", "desk", "shelf", "others"}
     )
     private String category;
     

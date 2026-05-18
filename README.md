@@ -1,6 +1,10 @@
 # MyRoom
 3D 방 꾸미기와 커뮤니티 경험을 제공하는 Spring Boot 백엔드.
 
+<img width="310" height="646" alt="image" src="https://github.com/user-attachments/assets/2ab7d779-816c-401a-944a-5f7f16a0ea35" />
+
+
+
 [AI 서버 레포지토리](https://github.com/asa9874/myroom-ai)
 
 ## Features
@@ -99,9 +103,3 @@ src/
   test/
     java/com/example/myroom/
 ```
-
-## Contributing
-1) 이슈 등록 또는 기능 제안
-2) 브랜치 생성: `feat/your-feature`
-3) 커밋 및 PR 생성
-4) 테스트 실행 후 공유: `./gradlew.bat test`

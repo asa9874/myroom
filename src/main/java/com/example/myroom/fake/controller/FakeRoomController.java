@@ -30,11 +30,12 @@ public class FakeRoomController implements FakeRoomApi {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FakeRoomResponseDto> createFakeRoom(
+            @RequestPart(value = "image", required = true) MultipartFile imageFile,
             @RequestPart(value = "xml_file", required = true) MultipartFile xmlFile,
             @RequestParam(value = "room_name") String roomName,
             @RequestParam(value = "description", required = false) String description) {
         FakeRoomCreateRequestDto requestDto = new FakeRoomCreateRequestDto(roomName, description);
-        FakeRoomResponseDto responseDto = fakeRoomService.createFakeRoom(xmlFile, requestDto);
+        FakeRoomResponseDto responseDto = fakeRoomService.createFakeRoom(imageFile, xmlFile, requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
@@ -54,11 +55,12 @@ public class FakeRoomController implements FakeRoomApi {
     @PutMapping(value = "/{fakeRoomId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FakeRoomResponseDto> updateFakeRoom(
             @PathVariable(name = "fakeRoomId") Long fakeRoomId,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
             @RequestPart(value = "xml_file", required = false) MultipartFile xmlFile,
             @RequestParam(value = "room_name", required = false) String roomName,
             @RequestParam(value = "description", required = false) String description) {
         FakeRoomUpdateRequestDto requestDto = new FakeRoomUpdateRequestDto(roomName, description);
-        FakeRoomResponseDto responseDto = fakeRoomService.updateFakeRoom(fakeRoomId, requestDto, xmlFile);
+        FakeRoomResponseDto responseDto = fakeRoomService.updateFakeRoom(fakeRoomId, requestDto, imageFile, xmlFile);
         return ResponseEntity.ok(responseDto);
     }
 

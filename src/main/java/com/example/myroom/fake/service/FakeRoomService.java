@@ -41,15 +41,19 @@ public class FakeRoomService {
 
     @Transactional
     public FakeRoomResponseDto createFakeRoom(
+            MultipartFile imageFile,
             MultipartFile xmlFile,
             FakeRoomCreateRequestDto requestDto) {
+        validateImageFile(imageFile);
         validateXmlFile(xmlFile);
 
+        String drawingImageUrl = s3Service.uploadFile(imageFile, "fake-room/images/");
         String xmlFileUrl = s3Service.uploadXmlFile(xmlFile, "fake-room/xml/");
 
         FakeRoom fakeRoom = FakeRoom.builder()
                 .roomName(requestDto.roomName())
                 .description(requestDto.description())
+            .drawingImageUrl(drawingImageUrl)
                 .xmlFileUrl(xmlFileUrl)
                 .build();
 
@@ -74,11 +78,24 @@ public class FakeRoomService {
     public FakeRoomResponseDto updateFakeRoom(
             Long fakeRoomId,
             FakeRoomUpdateRequestDto requestDto,
+            MultipartFile imageFile,
             MultipartFile xmlFile) {
         FakeRoom fakeRoom = fakeRoomRepository.findById(fakeRoomId)
                 .orElseThrow(() -> new EntityNotFoundException("Fake room not found. id=" + fakeRoomId));
 
         fakeRoom.updateInfo(requestDto.roomName(), requestDto.description());
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            validateImageFile(imageFile);
+
+            String oldImageUrl = fakeRoom.getDrawingImageUrl();
+            String newImageUrl = s3Service.uploadFile(imageFile, "fake-room/images/");
+            fakeRoom.updateDrawingImageUrl(newImageUrl);
+
+            if (oldImageUrl != null && !oldImageUrl.isBlank()) {
+                s3Service.deleteFile(oldImageUrl);
+            }
+        }
 
         if (xmlFile != null && !xmlFile.isEmpty()) {
             validateXmlFile(xmlFile);
@@ -101,8 +118,20 @@ public class FakeRoomService {
         FakeRoom fakeRoom = fakeRoomRepository.findById(fakeRoomId)
                 .orElseThrow(() -> new EntityNotFoundException("Fake room not found. id=" + fakeRoomId));
 
+        s3Service.deleteFile(fakeRoom.getDrawingImageUrl());
         s3Service.deleteFile(fakeRoom.getXmlFileUrl());
         fakeRoomRepository.delete(fakeRoom);
+    }
+
+    private void validateImageFile(MultipartFile imageFile) {
+        if (imageFile == null || imageFile.isEmpty()) {
+            throw new IllegalArgumentException("Image file is required.");
+        }
+
+        String contentType = imageFile.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("Only image files are allowed.");
+        }
     }
 
     private void validateXmlFile(MultipartFile xmlFile) {
@@ -126,7 +155,9 @@ public class FakeRoomService {
                 .timestamp(System.currentTimeMillis())
                 .build();
 
-        String drawingImageUrl = fakeRoom.getXmlFileUrl();
+        String drawingImageUrl = fakeRoom.getDrawingImageUrl() != null
+            ? fakeRoom.getDrawingImageUrl()
+            : fakeRoom.getXmlFileUrl();
 
         taskScheduler.schedule(
                 () -> webSocketNotificationService.sendRoom3DGenerationNotification(response, drawingImageUrl),

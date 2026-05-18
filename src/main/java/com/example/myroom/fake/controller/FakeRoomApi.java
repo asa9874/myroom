@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-@Tag(name = "가짜 방", description = "XML 업로드 및 조회를 위한 공개 API입니다.")
+@Tag(name = "가짜 방", description = "XML/도면 이미지 업로드 및 조회를 위한 공개 API입니다.")
 public interface FakeRoomApi {
 
     @ApiResponses(
@@ -38,9 +38,11 @@ public interface FakeRoomApi {
             )
         }
     )
-    @Operation(summary = "XML 업로드 및 방 정보 등록")
+        @Operation(summary = "도면 이미지 및 XML 업로드, 방 정보 등록")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<FakeRoomResponseDto> createFakeRoom(
+            @Parameter(description = "도면 이미지 파일", required = true)
+            @RequestPart(value = "image", required = true) MultipartFile imageFile,
             @Parameter(description = "방 XML 파일", required = true)
             @RequestPart(value = "xml_file", required = true) MultipartFile xmlFile,
             @Parameter(description = "방 이름", required = true, example = "안방")
@@ -95,7 +97,7 @@ public interface FakeRoomApi {
                 "notificationType": "ROOM3D_GENERATION_SUCCESS",
                 "memberId": 1,
                 "room3dId": 1,
-                "drawingImageUrl": "https://example-bucket.s3.amazonaws.com/fake-room/xml/a.xml",
+                "drawingImageUrl": "https://example-bucket.s3.amazonaws.com/fake-room/images/a.png",
                 "xmlFileUrl": "https://example-bucket.s3.amazonaws.com/fake-room/xml/a.xml",
                 "status": "SUCCESS",
                 "message": "Room3D generation completed.",
@@ -124,11 +126,13 @@ public interface FakeRoomApi {
             )
         }
     )
-    @Operation(summary = "가짜 방 정보 수정")
+        @Operation(summary = "가짜 방 정보 수정")
     @PutMapping(value = "/{fakeRoomId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<FakeRoomResponseDto> updateFakeRoom(
             @Parameter(description = "가짜 방 ID", required = true, example = "1")
             @PathVariable(name = "fakeRoomId") Long fakeRoomId,
+            @Parameter(description = "도면 이미지 파일", required = false)
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
             @Parameter(description = "방 XML 파일", required = false)
             @RequestPart(value = "xml_file", required = false) MultipartFile xmlFile,
             @Parameter(description = "방 이름", required = false, example = "거실")

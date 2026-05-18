@@ -19,6 +19,12 @@ public record FakeRoomResponseDto(
         @Schema(description = "방 설명", requiredMode = RequiredMode.NOT_REQUIRED, example = "동쪽 벽에 창문이 있는 방")
         String description,
         @Schema(
+            description = "도면 이미지 URL",
+            requiredMode = RequiredMode.REQUIRED,
+            example = "https://example-bucket.s3.amazonaws.com/fake-room/images/a.png"
+        )
+        String drawingImageUrl,
+        @Schema(
             description = "XML 파일 URL",
             requiredMode = RequiredMode.REQUIRED,
             example = "https://example-bucket.s3.amazonaws.com/fake-room/xml/a.xml"
@@ -34,6 +40,7 @@ public record FakeRoomResponseDto(
                 fakeRoom.getId(),
                 fakeRoom.getRoomName(),
                 fakeRoom.getDescription(),
+            fakeRoom.getDrawingImageUrl(),
                 fakeRoom.getXmlFileUrl(),
                 fakeRoom.getCreatedAt(),
                 fakeRoom.getUpdatedAt()

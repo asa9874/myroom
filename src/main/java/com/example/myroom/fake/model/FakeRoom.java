@@ -32,6 +32,9 @@ public class FakeRoom {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column
+    private String drawingImageUrl;
+
     @Column(nullable = false)
     private String xmlFileUrl;
 
@@ -44,9 +47,10 @@ public class FakeRoom {
     private LocalDateTime updatedAt;
 
     @Builder
-    public FakeRoom(String roomName, String description, String xmlFileUrl) {
+    public FakeRoom(String roomName, String description, String drawingImageUrl, String xmlFileUrl) {
         this.roomName = roomName;
         this.description = description;
+        this.drawingImageUrl = drawingImageUrl;
         this.xmlFileUrl = xmlFileUrl;
     }
 
@@ -61,5 +65,9 @@ public class FakeRoom {
 
     public void updateXmlFileUrl(String xmlFileUrl) {
         this.xmlFileUrl = xmlFileUrl;
+    }
+
+    public void updateDrawingImageUrl(String drawingImageUrl) {
+        this.drawingImageUrl = drawingImageUrl;
     }
 }

@@ -169,10 +169,10 @@ public interface RecommandApi {
             @RequestPart(value = "image", required = true) MultipartFile imageFile,
             
             @Parameter(
-                description = "추천받을 가구 카테고리 (chair, table, sofa, bed, lamp, desk, shelf 등). 생략하거나 빈 문자열 전달 시 카테고리 무관 전체 반환.",
+                description = "추천받을 가구 카테고리 (chair, table, sofa, bed, lamp, desk, shelf, others 등). 생략하거나 빈 문자열 전달 시 카테고리 무관 전체 반환.",
                 required = false,
                 example = "",
-                schema = @Schema(defaultValue = "", allowableValues = {"", "chair", "table", "sofa", "bed", "lamp", "desk", "shelf"})
+                schema = @Schema(defaultValue = "", allowableValues = {"", "chair", "table", "sofa", "bed", "lamp", "desk", "shelf", "others"})
             )
             @RequestParam(value = "category", required = false, defaultValue = "") String category,
             

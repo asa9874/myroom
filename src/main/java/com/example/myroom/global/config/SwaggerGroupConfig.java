@@ -57,6 +57,14 @@ public class SwaggerGroupConfig {
     }
 
     @Bean
+    public GroupedOpenApi fakeRoomApi() {
+        return GroupedOpenApi.builder()
+                .group("가짜 방")
+                .pathsToMatch("/api/fake-rooms/**")
+                .build();
+    }
+
+    @Bean
     public GroupedOpenApi testDataApi() {
         return GroupedOpenApi.builder()
                 .group("🧪 테스트 데이터")
